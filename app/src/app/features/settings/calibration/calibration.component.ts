@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
+import { I18nService } from '@core/services/i18n.service';
 import { getNoteName } from '@core/models/settings.model';
 
 type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
@@ -12,29 +13,26 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
   imports: [CommonModule],
   template: `
     <div class="calibration-page">
-      <h1>Calibration</h1>
+      <h1>{{ i18n.t('calibration.title') }}</h1>
 
       <!-- Intro Step -->
       @if (step() === 'intro') {
         <div class="calibration-card card">
           <div class="step-icon">🎹</div>
-          <h2>Quick Calibration</h2>
-          <p>
-            We'll match your LED strip to your piano keys.
-            This only takes a few seconds.
-          </p>
+          <h2>{{ i18n.t('calibration.quickCalibration') }}</h2>
+          <p>{{ i18n.t('calibration.quickCalibrationDesc') }}</p>
           <ol class="instructions">
-            <li>Make sure your piano is connected via USB</li>
-            <li>You'll press the leftmost key on your piano</li>
-            <li>Then press the rightmost key</li>
-            <li>We'll automatically map the LEDs to all keys</li>
+            <li>{{ i18n.t('calibration.instruction1') }}</li>
+            <li>{{ i18n.t('calibration.instruction2') }}</li>
+            <li>{{ i18n.t('calibration.instruction3') }}</li>
+            <li>{{ i18n.t('calibration.instruction4') }}</li>
           </ol>
           <div class="button-group">
             <button class="btn btn-primary" (click)="startCalibration()">
-              Start Calibration
+              {{ i18n.t('calibration.startCalibration') }}
             </button>
             <button class="btn btn-secondary" (click)="goBack()">
-              Cancel
+              {{ i18n.t('calibration.cancel') }}
             </button>
           </div>
         </div>
@@ -44,11 +42,8 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
       @if (step() === 'first-key') {
         <div class="calibration-card card">
           <div class="step-icon">⬅️</div>
-          <h2>Press the Leftmost Key</h2>
-          <p>
-            Press and hold the <strong>leftmost key</strong> on your piano
-            (usually A0 or the lowest note available).
-          </p>
+          <h2>{{ i18n.t('calibration.pressLeftmost') }}</h2>
+          <p>{{ i18n.t('calibration.pressLeftmostDesc') }}</p>
           <div class="keyboard-hint">
             <div class="piano-visual">
               <div class="key white highlight"></div>
@@ -60,21 +55,21 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
               <div class="key black"></div>
               <div class="key white"></div>
             </div>
-            <span class="hint-arrow">← Press this key</span>
+            <span class="hint-arrow">{{ i18n.t('calibration.pressThisKey') }}</span>
           </div>
 
           @if (firstNote()) {
             <div class="detected-note">
-              Detected: <strong>{{ getNoteName(firstNote()!) }}</strong>
+              {{ i18n.t('calibration.detected') }}: <strong>{{ getNoteName(firstNote()!) }}</strong>
             </div>
           }
 
           <div class="waiting-indicator" [class.detected]="firstNote()">
             @if (!firstNote()) {
               <span class="pulse-dot"></span>
-              Waiting for key press...
+              {{ i18n.t('calibration.waitingForKey') }}
             } @else {
-              ✓ Key detected!
+              {{ i18n.t('calibration.keyDetected') }}
             }
           </div>
         </div>
@@ -84,11 +79,8 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
       @if (step() === 'last-key') {
         <div class="calibration-card card">
           <div class="step-icon">➡️</div>
-          <h2>Press the Rightmost Key</h2>
-          <p>
-            Now press and hold the <strong>rightmost key</strong> on your piano
-            (usually C8 or the highest note available).
-          </p>
+          <h2>{{ i18n.t('calibration.pressRightmost') }}</h2>
+          <p>{{ i18n.t('calibration.pressRightmostDesc') }}</p>
           <div class="keyboard-hint">
             <div class="piano-visual">
               <div class="key white"></div>
@@ -100,21 +92,21 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
               <div class="key black"></div>
               <div class="key white highlight"></div>
             </div>
-            <span class="hint-arrow">Press this key →</span>
+            <span class="hint-arrow">{{ i18n.t('calibration.pressThisKey') }} →</span>
           </div>
 
           @if (lastNote()) {
             <div class="detected-note">
-              Detected: <strong>{{ getNoteName(lastNote()!) }}</strong>
+              {{ i18n.t('calibration.detected') }}: <strong>{{ getNoteName(lastNote()!) }}</strong>
             </div>
           }
 
           <div class="waiting-indicator" [class.detected]="lastNote()">
             @if (!lastNote()) {
               <span class="pulse-dot"></span>
-              Waiting for key press...
+              {{ i18n.t('calibration.waitingForKey') }}
             } @else {
-              ✓ Key detected!
+              {{ i18n.t('calibration.keyDetected') }}
             }
           </div>
         </div>
@@ -124,30 +116,30 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
       @if (step() === 'complete') {
         <div class="calibration-card card">
           <div class="step-icon">✅</div>
-          <h2>Calibration Complete!</h2>
-          <p>Your LED strip is now calibrated.</p>
+          <h2>{{ i18n.t('calibration.complete') }}</h2>
+          <p>{{ i18n.t('calibration.completeDesc') }}</p>
 
           <div class="calibration-summary">
             <div class="summary-row">
-              <span>First key:</span>
+              <span>{{ i18n.t('calibration.firstKey') }}:</span>
               <strong>{{ getNoteName(firstNote()!) }}</strong>
             </div>
             <div class="summary-row">
-              <span>Last key:</span>
+              <span>{{ i18n.t('calibration.lastKey') }}:</span>
               <strong>{{ getNoteName(lastNote()!) }}</strong>
             </div>
             <div class="summary-row">
-              <span>Total keys:</span>
+              <span>{{ i18n.t('calibration.totalKeys') }}:</span>
               <strong>{{ (lastNote()! - firstNote()! + 1) }}</strong>
             </div>
           </div>
 
           <div class="button-group">
             <button class="btn btn-primary" (click)="finish()">
-              Done
+              {{ i18n.t('calibration.done') }}
             </button>
             <button class="btn btn-secondary" (click)="restart()">
-              Recalibrate
+              {{ i18n.t('settings.recalibrate') }}
             </button>
           </div>
         </div>
@@ -335,6 +327,7 @@ type CalibrationStep = 'intro' | 'first-key' | 'last-key' | 'complete';
 export class CalibrationComponent {
   private router = inject(Router);
   private connectionService = inject(CONNECTION_SERVICE);
+  i18n = inject(I18nService);
 
   step = signal<CalibrationStep>('intro');
   firstNote = signal<number | null>(null);
@@ -345,16 +338,10 @@ export class CalibrationComponent {
   startCalibration(): void {
     this.step.set('first-key');
     this.connectionService.startCalibration('quick');
-
-    // Listen for MIDI notes
-    // In real implementation, this would subscribe to MIDI events
-    // For demo, we'll simulate with a timeout
     this.waitForNote('first');
   }
 
   private waitForNote(which: 'first' | 'last'): void {
-    // This would be replaced with actual MIDI event subscription
-    // For now, simulating the flow
     const sub = setInterval(() => {
       const lastMidi = this.connectionService.lastMidiNote();
       if (lastMidi && lastMidi.on) {
@@ -378,7 +365,6 @@ export class CalibrationComponent {
   }
 
   private saveCalibration(): void {
-    // Send calibration data to controller
     if (this.firstNote() && this.lastNote()) {
       this.connectionService.sendCalibrationInput(this.firstNote()!);
       this.connectionService.sendCalibrationInput(this.lastNote()!);

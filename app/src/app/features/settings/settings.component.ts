@@ -3,41 +3,51 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
+import { I18nService } from '@core/services/i18n.service';
+import { LanguageSelectorComponent } from '@shared/components/language-selector/language-selector.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, LanguageSelectorComponent],
   template: `
     <div class="settings-page">
-      <h1>Settings</h1>
+      <h1>{{ i18n.t('settings.title') }}</h1>
+
+      <!-- Language Section -->
+      <section class="settings-section card">
+        <h2>{{ i18n.t('settings.language') }}</h2>
+        <div class="setting-row">
+          <app-language-selector />
+        </div>
+      </section>
 
       <!-- Calibration Section -->
       <section class="settings-section card">
-        <h2>Calibration</h2>
+        <h2>{{ i18n.t('settings.calibration') }}</h2>
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">LED Calibration</span>
+            <span class="setting-label">{{ i18n.t('settings.ledCalibration') }}</span>
             <span class="setting-description">
               @if (connectionService.calibrated()) {
-                Calibrated
+                {{ i18n.t('settings.calibrated') }}
               } @else {
-                Not calibrated
+                {{ i18n.t('settings.notCalibrated') }}
               }
             </span>
           </div>
           <a routerLink="/calibration" class="btn btn-secondary">
-            {{ connectionService.calibrated() ? 'Recalibrate' : 'Start' }}
+            {{ connectionService.calibrated() ? i18n.t('settings.recalibrate') : i18n.t('settings.start') }}
           </a>
         </div>
       </section>
 
       <!-- LED Settings -->
       <section class="settings-section card">
-        <h2>LED Settings</h2>
+        <h2>{{ i18n.t('settings.ledSettings') }}</h2>
 
         <div class="setting-row">
-          <span class="setting-label">LED Count</span>
+          <span class="setting-label">{{ i18n.t('settings.ledCount') }}</span>
           <input
             type="number"
             [ngModel]="ledCount()"
@@ -49,7 +59,7 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
         </div>
 
         <div class="setting-row">
-          <span class="setting-label">Reversed Direction</span>
+          <span class="setting-label">{{ i18n.t('settings.reversedDirection') }}</span>
           <label class="toggle">
             <input
               type="checkbox"
@@ -61,7 +71,7 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
         </div>
 
         <div class="setting-row">
-          <span class="setting-label">Default Brightness</span>
+          <span class="setting-label">{{ i18n.t('settings.defaultBrightness') }}</span>
           <div class="slider-control">
             <input
               type="range"
@@ -77,20 +87,20 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 
       <!-- WiFi Settings -->
       <section class="settings-section card">
-        <h2>WiFi</h2>
+        <h2>{{ i18n.t('settings.wifi') }}</h2>
 
         <div class="setting-row">
-          <span class="setting-label">Mode</span>
+          <span class="setting-label">{{ i18n.t('settings.wifiMode') }}</span>
           <select [ngModel]="wifiMode()" (ngModelChange)="wifiMode.set($event)">
-            <option value="0">Access Point</option>
-            <option value="1">Connect to Network</option>
-            <option value="2">Both</option>
+            <option value="0">{{ i18n.t('settings.accessPoint') }}</option>
+            <option value="1">{{ i18n.t('settings.connectToNetwork') }}</option>
+            <option value="2">{{ i18n.t('settings.both') }}</option>
           </select>
         </div>
 
         @if (wifiMode() === '1' || wifiMode() === '2') {
           <div class="setting-row">
-            <span class="setting-label">Network SSID</span>
+            <span class="setting-label">{{ i18n.t('settings.networkSsid') }}</span>
             <input
               type="text"
               [ngModel]="staSsid()"
@@ -100,7 +110,7 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
           </div>
 
           <div class="setting-row">
-            <span class="setting-label">Password</span>
+            <span class="setting-label">{{ i18n.t('settings.password') }}</span>
             <input
               type="password"
               [ngModel]="staPassword()"
@@ -112,12 +122,12 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 
         @if (wifiMode() === '0' || wifiMode() === '2') {
           <div class="setting-row">
-            <span class="setting-label">AP Name</span>
+            <span class="setting-label">{{ i18n.t('settings.apName') }}</span>
             <input
               type="text"
               [ngModel]="apSsid()"
               (ngModelChange)="apSsid.set($event)"
-              placeholder="PianoLED"
+              placeholder="Pianora"
             />
           </div>
         }
@@ -125,20 +135,20 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 
       <!-- System -->
       <section class="settings-section card">
-        <h2>System</h2>
+        <h2>{{ i18n.t('settings.system') }}</h2>
 
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">Firmware Version</span>
+            <span class="setting-label">{{ i18n.t('settings.firmwareVersion') }}</span>
             <span class="setting-value">
-              {{ connectionService.status()?.version || 'Unknown' }}
+              {{ connectionService.status()?.version || i18n.t('common.unknown') }}
             </span>
           </div>
         </div>
 
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">Free Memory</span>
+            <span class="setting-label">{{ i18n.t('settings.freeMemory') }}</span>
             <span class="setting-value">
               {{ formatBytes(connectionService.status()?.freeHeap || 0) }}
             </span>
@@ -147,30 +157,30 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 
         <div class="button-row">
           <button class="btn btn-secondary" (click)="checkForUpdates()">
-            Check for Updates
+            {{ i18n.t('settings.checkUpdates') }}
           </button>
         </div>
 
         <div class="button-row">
           <button class="btn btn-secondary" (click)="restart()">
-            Restart Controller
+            {{ i18n.t('settings.restartController') }}
           </button>
         </div>
 
         <div class="button-row">
           <button class="btn btn-danger" (click)="factoryReset()">
-            Factory Reset
+            {{ i18n.t('settings.factoryReset') }}
           </button>
         </div>
       </section>
 
       <!-- About -->
       <section class="settings-section card">
-        <h2>About</h2>
+        <h2>{{ i18n.t('settings.about') }}</h2>
         <div class="about-info">
           <p><strong>Pianora</strong></p>
-          <p class="text-muted">LED visualization for digital pianos</p>
-          <p class="text-muted">Version 0.1.0</p>
+          <p class="text-muted">{{ i18n.t('settings.appDescription') }}</p>
+          <p class="text-muted">{{ i18n.t('settings.version') }} 0.1.0</p>
         </div>
       </section>
     </div>
@@ -279,6 +289,7 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 })
 export class SettingsComponent {
   connectionService = inject(CONNECTION_SERVICE);
+  i18n = inject(I18nService);
 
   // Settings state
   ledCount = signal(144);
@@ -299,21 +310,18 @@ export class SettingsComponent {
   }
 
   checkForUpdates(): void {
-    // TODO: Implement OTA update check
-    alert('Update check not implemented yet');
+    alert(this.i18n.t('common.updateNotImplemented'));
   }
 
   restart(): void {
-    if (confirm('Are you sure you want to restart the controller?')) {
-      // TODO: Call restart API
+    if (confirm(this.i18n.t('common.confirmRestart'))) {
       console.log('Restarting...');
     }
   }
 
   factoryReset(): void {
-    if (confirm('This will erase all settings and data. Are you sure?')) {
-      if (confirm('This action cannot be undone. Continue?')) {
-        // TODO: Call factory reset API
+    if (confirm(this.i18n.t('common.confirmFactoryReset'))) {
+      if (confirm(this.i18n.t('common.confirmFactoryResetFinal'))) {
         console.log('Factory reset...');
       }
     }

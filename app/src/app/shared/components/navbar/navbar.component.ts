@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { I18nService } from '@core/services/i18n.service';
 
 interface NavItem {
   path: string;
-  label: string;
+  labelKey: 'nav.play' | 'nav.learn' | 'nav.library' | 'nav.settings';
   icon: string;
 }
 
@@ -21,7 +22,7 @@ interface NavItem {
           class="nav-item"
         >
           <span class="nav-icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
+          <span class="nav-label">{{ i18n.t(item.labelKey) }}</span>
         </a>
       }
     </nav>
@@ -75,10 +76,12 @@ interface NavItem {
   `]
 })
 export class NavbarComponent {
+  i18n = inject(I18nService);
+
   navItems: NavItem[] = [
-    { path: '/play', label: 'Play', icon: '🎹' },
-    { path: '/learn', label: 'Learn', icon: '📚' },
-    { path: '/library', label: 'Library', icon: '🎵' },
-    { path: '/settings', label: 'Settings', icon: '⚙️' }
+    { path: '/play', labelKey: 'nav.play', icon: '🎹' },
+    { path: '/learn', labelKey: 'nav.learn', icon: '📚' },
+    { path: '/library', labelKey: 'nav.library', icon: '🎵' },
+    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' }
   ];
 }

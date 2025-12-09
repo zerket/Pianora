@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
+import { I18nService } from '@core/services/i18n.service';
 
 @Component({
   selector: 'app-learn',
@@ -9,60 +10,60 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
   imports: [CommonModule, RouterLink],
   template: `
     <div class="learn-page">
-      <h1>Learn</h1>
+      <h1>{{ i18n.t('learn.title') }}</h1>
 
       @if (!connectionService.calibrated()) {
         <div class="calibration-warning card">
           <span class="warning-icon">⚠️</span>
           <div class="warning-content">
-            <h3>Calibration Required</h3>
-            <p>Please calibrate your LED strip before using learning mode.</p>
+            <h3>{{ i18n.t('learn.calibrationRequired') }}</h3>
+            <p>{{ i18n.t('learn.calibrationRequiredDesc') }}</p>
             <a routerLink="/calibration" class="btn btn-primary">
-              Start Calibration
+              {{ i18n.t('learn.startCalibration') }}
             </a>
           </div>
         </div>
       } @else {
         <section class="song-selection card">
-          <h2>Select a Song</h2>
-          <p class="text-muted">Choose a song from your library to practice.</p>
+          <h2>{{ i18n.t('learn.selectSong') }}</h2>
+          <p class="text-muted">{{ i18n.t('learn.selectSongDesc') }}</p>
           <a routerLink="/library" class="btn btn-secondary">
-            Browse Library
+            {{ i18n.t('learn.browseLibrary') }}
           </a>
         </section>
 
         <section class="learning-modes">
-          <h2>Learning Modes</h2>
+          <h2>{{ i18n.t('learn.learningModes') }}</h2>
           <div class="modes-list">
             <div class="mode-item card">
               <div class="mode-header">
                 <span class="mode-icon">⏸️</span>
-                <h3>Wait Mode</h3>
+                <h3>{{ i18n.t('learn.waitMode') }}</h3>
               </div>
-              <p>The song waits for you to press the correct keys before moving on.</p>
+              <p>{{ i18n.t('learn.waitModeDesc') }}</p>
             </div>
 
             <div class="mode-item card">
               <div class="mode-header">
                 <span class="mode-icon">🎵</span>
-                <h3>Rhythm Mode</h3>
+                <h3>{{ i18n.t('learn.rhythmMode') }}</h3>
               </div>
-              <p>Practice playing in the correct rhythm and timing.</p>
+              <p>{{ i18n.t('learn.rhythmModeDesc') }}</p>
             </div>
 
             <div class="mode-item card">
               <div class="mode-header">
                 <span class="mode-icon">▶️</span>
-                <h3>Auto-scroll</h3>
+                <h3>{{ i18n.t('learn.autoScroll') }}</h3>
               </div>
-              <p>Watch the song play automatically to learn the notes.</p>
+              <p>{{ i18n.t('learn.autoScrollDesc') }}</p>
             </div>
           </div>
         </section>
 
         <section class="sheet-music-preview card">
-          <h2>Sheet Music</h2>
-          <p class="text-muted">Sheet music display will appear here when a song is selected.</p>
+          <h2>{{ i18n.t('learn.sheetMusic') }}</h2>
+          <p class="text-muted">{{ i18n.t('learn.sheetMusicDesc') }}</p>
           <div class="sheet-placeholder">
             🎼
           </div>
@@ -180,4 +181,5 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 })
 export class LearnComponent {
   connectionService = inject(CONNECTION_SERVICE);
+  i18n = inject(I18nService);
 }

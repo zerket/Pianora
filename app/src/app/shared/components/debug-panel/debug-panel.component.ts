@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 import { MockConnectionService } from '@core/services/mock-connection.service';
+import { I18nService } from '@core/services/i18n.service';
 import { environment } from '@env/environment';
 
 @Component({
@@ -12,46 +13,46 @@ import { environment } from '@env/environment';
     @if (isMockMode && isExpanded()) {
       <div class="debug-panel">
         <div class="debug-header">
-          <span>🎮 Debug Panel</span>
+          <span>🎮 {{ i18n.t('debug.title') }}</span>
           <button (click)="isExpanded.set(false)">×</button>
         </div>
 
         <div class="debug-content">
           <div class="debug-section">
-            <h4>Simulate Notes</h4>
+            <h4>{{ i18n.t('debug.simulateNotes') }}</h4>
             <div class="debug-buttons">
-              <button (click)="playRandomNote()">Random Note</button>
-              <button (click)="playChord()">C Major Chord</button>
-              <button (click)="playScale()">C Scale</button>
+              <button (click)="playRandomNote()">{{ i18n.t('debug.randomNote') }}</button>
+              <button (click)="playChord()">{{ i18n.t('debug.cMajorChord') }}</button>
+              <button (click)="playScale()">{{ i18n.t('debug.cScale') }}</button>
             </div>
           </div>
 
           <div class="debug-section">
-            <h4>Auto Simulation</h4>
+            <h4>{{ i18n.t('debug.autoSimulation') }}</h4>
             <div class="debug-buttons">
               <button (click)="startSimulation()" [disabled]="isSimulating()">
-                ▶ Start
+                {{ i18n.t('debug.start') }}
               </button>
               <button (click)="stopSimulation()" [disabled]="!isSimulating()">
-                ⏹ Stop
+                {{ i18n.t('debug.stop') }}
               </button>
             </div>
           </div>
 
           <div class="debug-section">
-            <h4>Status Toggles</h4>
+            <h4>{{ i18n.t('debug.statusToggles') }}</h4>
             <div class="debug-buttons">
               <button (click)="toggleMidi()">
-                Toggle MIDI {{ mockService.midiConnected() ? '🟢' : '🔴' }}
+                {{ i18n.t('debug.toggleMidi') }} {{ mockService.midiConnected() ? '🟢' : '🔴' }}
               </button>
               <button (click)="toggleCalibration()">
-                Toggle Calibrated {{ mockService.calibrated() ? '🟢' : '🔴' }}
+                {{ i18n.t('debug.toggleCalibrated') }} {{ mockService.calibrated() ? '🟢' : '🔴' }}
               </button>
             </div>
           </div>
 
           <div class="debug-section">
-            <h4>Piano Keys</h4>
+            <h4>{{ i18n.t('debug.pianoKeys') }}</h4>
             <div class="mini-piano">
               @for (note of pianoNotes; track note.midi) {
                 <button
@@ -203,17 +204,16 @@ import { environment } from '@env/environment';
 })
 export class DebugPanelComponent {
   private connectionService = inject(CONNECTION_SERVICE);
+  i18n = inject(I18nService);
 
   isMockMode = environment.useMock;
   isExpanded = signal(false);
   isSimulating = signal(false);
 
-  // Cast to MockConnectionService for mock-specific methods
   get mockService(): MockConnectionService {
     return this.connectionService as MockConnectionService;
   }
 
-  // One octave of piano notes for testing (C4 to C5)
   pianoNotes = [
     { midi: 60, name: 'C4', black: false },
     { midi: 61, name: 'C#', black: true },
@@ -237,7 +237,7 @@ export class DebugPanelComponent {
   }
 
   playChord(): void {
-    this.mockService.simulateChord([60, 64, 67]); // C Major
+    this.mockService.simulateChord([60, 64, 67]);
   }
 
   playScale(): void {

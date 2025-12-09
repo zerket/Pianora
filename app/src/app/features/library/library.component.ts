@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '@core/services/i18n.service';
 
 interface Song {
   name: string;
@@ -14,7 +15,7 @@ interface Song {
   imports: [CommonModule],
   template: `
     <div class="library-page">
-      <h1>Library</h1>
+      <h1>{{ i18n.t('library.title') }}</h1>
 
       <!-- Tabs -->
       <div class="tabs">
@@ -23,28 +24,28 @@ interface Song {
           [class.active]="activeTab() === 'all'"
           (click)="activeTab.set('all')"
         >
-          All
+          {{ i18n.t('library.all') }}
         </button>
         <button
           class="tab"
           [class.active]="activeTab() === 'imported'"
           (click)="activeTab.set('imported')"
         >
-          Imported
+          {{ i18n.t('library.imported') }}
         </button>
         <button
           class="tab"
           [class.active]="activeTab() === 'recordings'"
           (click)="activeTab.set('recordings')"
         >
-          Recordings
+          {{ i18n.t('library.recordings') }}
         </button>
       </div>
 
       <!-- Upload Button -->
       <div class="upload-section">
         <label class="btn btn-secondary upload-btn">
-          <span>📁 Import MIDI File</span>
+          <span>📁 {{ i18n.t('library.importMidi') }}</span>
           <input
             type="file"
             accept=".mid,.midi"
@@ -59,8 +60,8 @@ interface Song {
         @if (filteredSongs().length === 0) {
           <div class="empty-state">
             <span class="empty-icon">🎵</span>
-            <p>No songs yet</p>
-            <p class="text-muted">Import MIDI files to get started</p>
+            <p>{{ i18n.t('library.noSongs') }}</p>
+            <p class="text-muted">{{ i18n.t('library.noSongsDesc') }}</p>
           </div>
         } @else {
           @for (song of filteredSongs(); track song.name) {
@@ -81,10 +82,10 @@ interface Song {
                 </div>
               </div>
               <div class="song-actions">
-                <button class="btn btn-icon" title="Play">▶️</button>
-                <button class="btn btn-icon" title="Learn">📖</button>
+                <button class="btn btn-icon" [title]="i18n.t('library.play')">▶️</button>
+                <button class="btn btn-icon" [title]="i18n.t('library.learnSong')">📖</button>
                 @if (song.type !== 'builtin') {
-                  <button class="btn btn-icon" title="Delete">🗑️</button>
+                  <button class="btn btn-icon" [title]="i18n.t('library.delete')">🗑️</button>
                 }
               </div>
             </div>
@@ -101,7 +102,7 @@ interface Song {
           ></div>
         </div>
         <p class="storage-text">
-          {{ usedStorage() }} / {{ totalStorage() }} used
+          {{ usedStorage() }} / {{ totalStorage() }} {{ i18n.t('library.storageUsed') }}
         </p>
       </div>
     </div>
@@ -241,6 +242,8 @@ interface Song {
   `]
 })
 export class LibraryComponent {
+  i18n = inject(I18nService);
+
   activeTab = signal<'all' | 'imported' | 'recordings'>('all');
 
   // Mock data - would come from API

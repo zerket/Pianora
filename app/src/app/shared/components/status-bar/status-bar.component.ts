@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
+import { I18nService } from '@core/services/i18n.service';
 
 @Component({
   selector: 'app-status-bar',
@@ -15,7 +16,7 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
           [class.disconnected]="!connectionService.connected()"
         ></span>
         <span class="status-label">
-          {{ connectionService.connected() ? 'Connected' : 'Disconnected' }}
+          {{ connectionService.connected() ? i18n.t('status.connected') : i18n.t('status.disconnected') }}
         </span>
       </div>
 
@@ -26,13 +27,13 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
             [class.connected]="connectionService.midiConnected()"
             [class.disconnected]="!connectionService.midiConnected()"
           ></span>
-          <span class="status-label">MIDI</span>
+          <span class="status-label">{{ i18n.t('status.midi') }}</span>
         </div>
 
         @if (!connectionService.calibrated()) {
           <div class="status-item warning">
             <span class="status-icon">⚠️</span>
-            <span class="status-label">Calibration needed</span>
+            <span class="status-label">{{ i18n.t('status.calibrationNeeded') }}</span>
           </div>
         }
       }
@@ -74,4 +75,5 @@ import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 })
 export class StatusBarComponent {
   connectionService = inject(CONNECTION_SERVICE);
+  i18n = inject(I18nService);
 }

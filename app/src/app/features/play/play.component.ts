@@ -2,13 +2,14 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
+import { I18nService } from '@core/services/i18n.service';
 import { LedMode } from '@core/models/settings.model';
 
 interface ModeOption {
   mode: LedMode;
-  label: string;
+  labelKey: 'play.mode.freePlay' | 'play.mode.visualizer' | 'play.mode.ambient' | 'play.mode.demo';
   icon: string;
-  description: string;
+  descKey: 'play.mode.freePlayDesc' | 'play.mode.visualizerDesc' | 'play.mode.ambientDesc' | 'play.mode.demoDesc';
 }
 
 @Component({
@@ -17,11 +18,11 @@ interface ModeOption {
   imports: [CommonModule, FormsModule],
   template: `
     <div class="play-page">
-      <h1>Play Mode</h1>
+      <h1>{{ i18n.t('play.title') }}</h1>
 
       <!-- Mode Selection -->
       <section class="modes-section">
-        <h2>Select Mode</h2>
+        <h2>{{ i18n.t('play.selectMode') }}</h2>
         <div class="modes-grid">
           @for (option of modeOptions; track option.mode) {
             <button
@@ -30,8 +31,8 @@ interface ModeOption {
               (click)="selectMode(option.mode)"
             >
               <span class="mode-icon">{{ option.icon }}</span>
-              <span class="mode-label">{{ option.label }}</span>
-              <span class="mode-description">{{ option.description }}</span>
+              <span class="mode-label">{{ i18n.t(option.labelKey) }}</span>
+              <span class="mode-description">{{ i18n.t(option.descKey) }}</span>
             </button>
           }
         </div>
@@ -39,10 +40,10 @@ interface ModeOption {
 
       <!-- Quick Settings -->
       <section class="settings-section card">
-        <h2>Quick Settings</h2>
+        <h2>{{ i18n.t('play.quickSettings') }}</h2>
 
         <div class="setting-row">
-          <label>Brightness</label>
+          <label>{{ i18n.t('play.brightness') }}</label>
           <div class="setting-control">
             <input
               type="range"
@@ -56,7 +57,7 @@ interface ModeOption {
         </div>
 
         <div class="setting-row">
-          <label>Color</label>
+          <label>{{ i18n.t('play.color') }}</label>
           <div class="setting-control">
             <input
               type="color"
@@ -69,7 +70,7 @@ interface ModeOption {
 
         @if (currentMode() === LedMode.VISUALIZER) {
           <div class="setting-row">
-            <label>Fade Time (ms)</label>
+            <label>{{ i18n.t('play.fadeTime') }}</label>
             <div class="setting-control">
               <input
                 type="range"
@@ -79,12 +80,12 @@ interface ModeOption {
                 [ngModel]="fadeTime()"
                 (ngModelChange)="setFadeTime($event)"
               />
-              <span class="setting-value">{{ fadeTime() }}ms</span>
+              <span class="setting-value">{{ fadeTime() }}{{ i18n.t('common.ms') }}</span>
             </div>
           </div>
 
           <div class="setting-row">
-            <label>Wave Effect</label>
+            <label>{{ i18n.t('play.waveEffect') }}</label>
             <div class="setting-control">
               <label class="toggle">
                 <input
@@ -99,7 +100,7 @@ interface ModeOption {
 
           @if (waveEnabled()) {
             <div class="setting-row">
-              <label>Wave Width</label>
+              <label>{{ i18n.t('play.waveWidth') }}</label>
               <div class="setting-control">
                 <input
                   type="range"
@@ -108,7 +109,7 @@ interface ModeOption {
                   [ngModel]="waveWidth()"
                   (ngModelChange)="setWaveWidth($event)"
                 />
-                <span class="setting-value">{{ waveWidth() }} LEDs</span>
+                <span class="setting-value">{{ waveWidth() }} {{ i18n.t('common.leds') }}</span>
               </div>
             </div>
           }
@@ -118,7 +119,7 @@ interface ModeOption {
       <!-- Active Notes Display -->
       @if (connectionService.activeNotes().size > 0) {
         <section class="active-notes card">
-          <h3>Active Notes</h3>
+          <h3>{{ i18n.t('play.activeNotes') }}</h3>
           <div class="notes-display">
             @for (note of activeNotesArray(); track note) {
               <span class="note-badge">{{ getNoteName(note) }}</span>
@@ -270,6 +271,7 @@ interface ModeOption {
 })
 export class PlayComponent {
   connectionService = inject(CONNECTION_SERVICE);
+  i18n = inject(I18nService);
   LedMode = LedMode;
 
   // Local state
@@ -284,27 +286,27 @@ export class PlayComponent {
   modeOptions: ModeOption[] = [
     {
       mode: LedMode.FREE_PLAY,
-      label: 'Free Play',
+      labelKey: 'play.mode.freePlay',
       icon: '🎹',
-      description: 'Simple key highlighting'
+      descKey: 'play.mode.freePlayDesc'
     },
     {
       mode: LedMode.VISUALIZER,
-      label: 'Visualizer',
+      labelKey: 'play.mode.visualizer',
       icon: '✨',
-      description: 'Effects and animations'
+      descKey: 'play.mode.visualizerDesc'
     },
     {
       mode: LedMode.AMBIENT,
-      label: 'Ambient',
+      labelKey: 'play.mode.ambient',
       icon: '🌈',
-      description: 'Decorative lighting'
+      descKey: 'play.mode.ambientDesc'
     },
     {
       mode: LedMode.DEMO,
-      label: 'Demo',
+      labelKey: 'play.mode.demo',
       icon: '🎬',
-      description: 'Auto playback'
+      descKey: 'play.mode.demoDesc'
     }
   ];
 
