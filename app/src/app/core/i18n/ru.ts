@@ -31,6 +31,32 @@ export const ru: TranslationKeys = {
   'play.mode.ambientDesc': 'Декоративная подсветка',
   'play.mode.demo': 'Демо',
   'play.mode.demoDesc': 'Автовоспроизведение',
+  'play.mode.split': 'Разделение',
+  'play.mode.splitDesc': 'Двухцветная раздельная клавиатура',
+  'play.mode.velocity': 'Динамика',
+  'play.mode.velocityDesc': 'Цвет зависит от силы нажатия',
+  'play.mode.random': 'Случайный',
+  'play.mode.randomDesc': 'Случайные цвета для каждой клавиши',
+
+  // Split mode settings
+  'play.split.title': 'Настройки разделения',
+  'play.split.splitPoint': 'Точка разделения',
+  'play.split.leftColor': 'Цвет левой части',
+  'play.split.rightColor': 'Цвет правой части',
+
+  // MIDI sources
+  'play.midi.title': 'MIDI вход',
+  'play.midi.usb': 'USB MIDI',
+  'play.midi.bluetooth': 'Bluetooth MIDI',
+  'play.midi.wifi': 'WiFi MIDI (rtpMIDI)',
+  'play.midi.scanBle': 'Поиск BLE устройств',
+  'play.midi.scanning': 'Поиск...',
+  'play.midi.notAvailable': 'Недоступно',
+
+  // OTA Update
+  'settings.otaUpdate': 'OTA обновление',
+  'settings.otaUpdateDesc': 'Обновление прошивки по воздуху',
+  'settings.openOtaPage': 'Открыть страницу обновления',
 
   // Learn page
   'learn.title': 'Обучение',

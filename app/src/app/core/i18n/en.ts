@@ -31,6 +31,32 @@ export const en: TranslationKeys = {
   'play.mode.ambientDesc': 'Decorative lighting',
   'play.mode.demo': 'Demo',
   'play.mode.demoDesc': 'Auto playback',
+  'play.mode.split': 'Split',
+  'play.mode.splitDesc': 'Two-color split keyboard',
+  'play.mode.velocity': 'Velocity',
+  'play.mode.velocityDesc': 'Color based on key pressure',
+  'play.mode.random': 'Random',
+  'play.mode.randomDesc': 'Random colors for each key',
+
+  // Split mode settings
+  'play.split.title': 'Split Settings',
+  'play.split.splitPoint': 'Split Point',
+  'play.split.leftColor': 'Left Color',
+  'play.split.rightColor': 'Right Color',
+
+  // MIDI sources
+  'play.midi.title': 'MIDI Input',
+  'play.midi.usb': 'USB MIDI',
+  'play.midi.bluetooth': 'Bluetooth MIDI',
+  'play.midi.wifi': 'WiFi MIDI (rtpMIDI)',
+  'play.midi.scanBle': 'Scan for BLE devices',
+  'play.midi.scanning': 'Scanning...',
+  'play.midi.notAvailable': 'Not available',
+
+  // OTA Update
+  'settings.otaUpdate': 'OTA Update',
+  'settings.otaUpdateDesc': 'Update firmware wirelessly',
+  'settings.openOtaPage': 'Open Update Page',
 
   // Learn page
   'learn.title': 'Learn',

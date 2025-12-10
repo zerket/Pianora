@@ -31,6 +31,27 @@ export const de: TranslationKeys = {
   'play.mode.ambientDesc': 'Dekorative Beleuchtung',
   'play.mode.demo': 'Demo',
   'play.mode.demoDesc': 'Automatische Wiedergabe',
+  'play.mode.split': 'Teilen',
+  'play.mode.splitDesc': 'Zweifarbige geteilte Tastatur',
+  'play.mode.velocity': 'Anschlagstärke',
+  'play.mode.velocityDesc': 'Farbe basierend auf Tastendruck',
+  'play.mode.random': 'Zufall',
+  'play.mode.randomDesc': 'Zufällige Farben für jede Taste',
+
+  // Split mode settings
+  'play.split.title': 'Teilungseinstellungen',
+  'play.split.splitPoint': 'Teilungspunkt',
+  'play.split.leftColor': 'Linke Farbe',
+  'play.split.rightColor': 'Rechte Farbe',
+
+  // MIDI sources
+  'play.midi.title': 'MIDI-Eingang',
+  'play.midi.usb': 'USB MIDI',
+  'play.midi.bluetooth': 'Bluetooth MIDI',
+  'play.midi.wifi': 'WiFi MIDI (rtpMIDI)',
+  'play.midi.scanBle': 'Nach BLE-Geräten suchen',
+  'play.midi.scanning': 'Suche...',
+  'play.midi.notAvailable': 'Nicht verfügbar',
 
   // Learn page
   'learn.title': 'Lernen',
@@ -93,6 +114,11 @@ export const de: TranslationKeys = {
   'settings.appDescription': 'LED-Visualisierung für Digitalpianos',
   'settings.version': 'Version',
   'settings.language': 'Sprache',
+
+  // OTA Update
+  'settings.otaUpdate': 'OTA-Update',
+  'settings.otaUpdateDesc': 'Firmware drahtlos aktualisieren',
+  'settings.openOtaPage': 'Update-Seite öffnen',
 
   // Calibration page
   'calibration.title': 'Kalibrierung',

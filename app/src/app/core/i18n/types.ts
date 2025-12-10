@@ -46,6 +46,27 @@ export interface TranslationKeys {
   'play.mode.ambientDesc': string;
   'play.mode.demo': string;
   'play.mode.demoDesc': string;
+  'play.mode.split': string;
+  'play.mode.splitDesc': string;
+  'play.mode.velocity': string;
+  'play.mode.velocityDesc': string;
+  'play.mode.random': string;
+  'play.mode.randomDesc': string;
+
+  // Split mode settings
+  'play.split.title': string;
+  'play.split.splitPoint': string;
+  'play.split.leftColor': string;
+  'play.split.rightColor': string;
+
+  // MIDI sources
+  'play.midi.title': string;
+  'play.midi.usb': string;
+  'play.midi.bluetooth': string;
+  'play.midi.wifi': string;
+  'play.midi.scanBle': string;
+  'play.midi.scanning': string;
+  'play.midi.notAvailable': string;
 
   // Learn page
   'learn.title': string;
@@ -108,6 +129,11 @@ export interface TranslationKeys {
   'settings.appDescription': string;
   'settings.version': string;
   'settings.language': string;
+
+  // OTA Update
+  'settings.otaUpdate': string;
+  'settings.otaUpdateDesc': string;
+  'settings.openOtaPage': string;
 
   // Calibration page
   'calibration.title': string;

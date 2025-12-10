@@ -24,6 +24,18 @@
 #include "web_server.h"
 #include "settings_manager.h"
 
+#if USE_BLE_MIDI
+#include "ble_midi.h"
+#endif
+
+#if USE_RTP_MIDI
+#include "rtp_midi.h"
+#endif
+
+#if USE_ELEGANT_OTA
+#include <ElegantOTA.h>
+#endif
+
 // ============================================================================
 // Global instances (defined in respective .cpp files)
 // ============================================================================
@@ -63,6 +75,38 @@ void onHotkey(uint8_t note1, uint8_t note2) {
     // TODO: Implement hotkey actions
     // Example: brightness up/down, mode switch, etc.
 }
+
+#if USE_BLE_MIDI
+// BLE MIDI Callbacks - forward to same handlers as USB MIDI
+void onBleMidiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+    onMidiNoteOn(channel, note, velocity);
+
+    // Forward to RTP MIDI if connected
+    #if USE_RTP_MIDI
+    rtpMidiHandler.sendNoteOn(channel, note, velocity);
+    #endif
+}
+
+void onBleMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+    onMidiNoteOff(channel, note, velocity);
+
+    // Forward to RTP MIDI if connected
+    #if USE_RTP_MIDI
+    rtpMidiHandler.sendNoteOff(channel, note, velocity);
+    #endif
+}
+#endif
+
+#if USE_RTP_MIDI
+// RTP MIDI Callbacks
+void onRtpMidiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+    onMidiNoteOn(channel, note, velocity);
+}
+
+void onRtpMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+    onMidiNoteOff(channel, note, velocity);
+}
+#endif
 
 // ============================================================================
 // Setup
@@ -114,13 +158,38 @@ void setup() {
     webServer.begin();
     DEBUG_PRINTLN("OK");
 
-    // Initialize MIDI handler
-    DEBUG_PRINT("Initializing MIDI... ");
+    // Initialize USB MIDI handler
+    DEBUG_PRINT("Initializing USB MIDI... ");
     midiHandler.begin();
     midiHandler.setNoteOnCallback(onMidiNoteOn);
     midiHandler.setNoteOffCallback(onMidiNoteOff);
     midiHandler.setHotkeyCallback(onHotkey);
     DEBUG_PRINTLN("OK");
+
+    #if USE_BLE_MIDI
+    // Initialize BLE MIDI
+    DEBUG_PRINT("Initializing BLE MIDI... ");
+    bleMidiHandler.begin();
+    bleMidiHandler.setNoteOnCallback(onBleMidiNoteOn);
+    bleMidiHandler.setNoteOffCallback(onBleMidiNoteOff);
+    DEBUG_PRINTLN("OK");
+    #endif
+
+    #if USE_RTP_MIDI
+    // Initialize RTP MIDI (AppleMIDI)
+    DEBUG_PRINT("Initializing RTP MIDI... ");
+    rtpMidiHandler.begin();
+    rtpMidiHandler.setNoteOnCallback(onRtpMidiNoteOn);
+    rtpMidiHandler.setNoteOffCallback(onRtpMidiNoteOff);
+    DEBUG_PRINTLN("OK");
+    #endif
+
+    #if USE_ELEGANT_OTA
+    // Initialize ElegantOTA
+    DEBUG_PRINT("Initializing OTA... ");
+    ElegantOTA.begin(&webServer.getServer());
+    DEBUG_PRINTLN("OK");
+    #endif
 
     // Apply settings
     Settings& s = settingsManager.get();
@@ -160,8 +229,18 @@ void setup() {
 // ============================================================================
 
 void loop() {
-    // Process MIDI input
+    // Process USB MIDI input
     midiHandler.update();
+
+    #if USE_BLE_MIDI
+    // Process BLE MIDI
+    bleMidiHandler.update();
+    #endif
+
+    #if USE_RTP_MIDI
+    // Process RTP MIDI (AppleMIDI)
+    rtpMidiHandler.update();
+    #endif
 
     // Update LED effects
     ledController.update();
@@ -171,6 +250,11 @@ void loop() {
 
     // Update web server (status broadcast, cleanup)
     webServer.update();
+
+    #if USE_ELEGANT_OTA
+    // Handle OTA updates
+    ElegantOTA.loop();
+    #endif
 
     // Small delay to prevent watchdog issues
     yield();

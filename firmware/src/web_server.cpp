@@ -6,6 +6,14 @@
 #include <LittleFS.h>
 #include <Update.h>
 
+#if USE_BLE_MIDI
+#include "ble_midi.h"
+#endif
+
+#if USE_RTP_MIDI
+#include "rtp_midi.h"
+#endif
+
 // Global instance
 WebServer webServer;
 
@@ -388,6 +396,40 @@ void WebServer::broadcastStatus() {
     doc["brightness"] = ledController.getBrightness();
     doc["calibrated"] = settingsManager.isCalibrated();
 
+    // BLE MIDI status
+    #if USE_BLE_MIDI
+    doc["ble_connected"] = bleMidiHandler.isConnected();
+    #else
+    doc["ble_connected"] = false;
+    #endif
+
+    // RTP MIDI status
+    #if USE_RTP_MIDI
+    doc["rtp_connected"] = rtpMidiHandler.isConnected();
+    #else
+    doc["rtp_connected"] = false;
+    #endif
+
+    // Feature flags
+    JsonObject features = doc["features"].to<JsonObject>();
+    #if USE_ELEGANT_OTA
+    features["elegant_ota"] = true;
+    #else
+    features["elegant_ota"] = false;
+    #endif
+
+    #if USE_BLE_MIDI
+    features["ble_midi"] = true;
+    #else
+    features["ble_midi"] = false;
+    #endif
+
+    #if USE_RTP_MIDI
+    features["rtp_midi"] = true;
+    #else
+    features["rtp_midi"] = false;
+    #endif
+
     String message;
     serializeJson(doc, message);
     _ws.textAll(message);
@@ -456,6 +498,21 @@ void WebServer::processSetSettings(JsonDocument& doc) {
 
     if (payload.containsKey("waveWidth")) {
         ledController.setWaveWidth(payload["waveWidth"]);
+    }
+
+    // Split mode settings
+    if (payload.containsKey("splitPoint")) {
+        ledController.setSplitPoint(payload["splitPoint"]);
+    }
+
+    if (payload.containsKey("splitLeftColor")) {
+        JsonArray color = payload["splitLeftColor"];
+        ledController.setSplitLeftColor(CRGB(color[0], color[1], color[2]));
+    }
+
+    if (payload.containsKey("splitRightColor")) {
+        JsonArray color = payload["splitRightColor"];
+        ledController.setSplitRightColor(CRGB(color[0], color[1], color[2]));
     }
 }
 

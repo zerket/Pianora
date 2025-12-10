@@ -7,8 +7,16 @@ export enum LedMode {
   DEMO = 4,
   AMBIENT = 5,
   FALLING_NOTES = 6,
-  GAME = 7,
-  SYNTHESIA = 8
+  SPLIT = 7,
+  VELOCITY = 8,
+  RANDOM = 9
+}
+
+// MIDI Source types
+export enum MidiSource {
+  USB = 0,
+  BLUETOOTH = 1,
+  RTP_WIFI = 2
 }
 
 // Ambient effect types
@@ -48,6 +56,18 @@ export interface VisualizerSettings {
   gradient: boolean;
 }
 
+export interface SplitSettings {
+  splitPoint: number;        // MIDI note number (21-108)
+  leftColor: RgbColor;       // Color for left side (low notes)
+  rightColor: RgbColor;      // Color for right side (high notes)
+}
+
+export interface MidiSettings {
+  source: MidiSource;
+  bleDeviceName?: string;
+  rtpSessionName?: string;
+}
+
 export interface LearningSettings {
   hintColor: RgbColor;
   successColor: RgbColor;
@@ -78,7 +98,9 @@ export interface CalibrationSettings {
 export interface AllSettings {
   led: LedSettings;
   visualizer: VisualizerSettings;
+  split: SplitSettings;
   learning: LearningSettings;
+  midi: MidiSettings;
   wifi: WifiSettings;
   calibration: CalibrationSettings;
   currentMode: LedMode;

@@ -4,6 +4,8 @@ import { environment } from '@env/environment';
 export interface ControllerStatus {
   version: string;
   midiConnected: boolean;
+  bleConnected: boolean;
+  rtpConnected: boolean;
   mode: number;
   brightness: number;
   calibrated: boolean;
@@ -14,6 +16,11 @@ export interface ControllerStatus {
     staConnected: boolean;
     staIp?: string;
     rssi?: number;
+  };
+  features: {
+    elegantOta: boolean;
+    bleMidi: boolean;
+    rtpMidi: boolean;
   };
 }
 
@@ -45,7 +52,12 @@ export class ConnectionService {
   readonly lastMidiNote = this._lastMidiNote.asReadonly();
   readonly activeNotes = this._activeNotes.asReadonly();
   readonly midiConnected = computed(() => this._status()?.midiConnected ?? false);
+  readonly bleConnected = computed(() => this._status()?.bleConnected ?? false);
+  readonly rtpConnected = computed(() => this._status()?.rtpConnected ?? false);
   readonly calibrated = computed(() => this._status()?.calibrated ?? false);
+  readonly hasOta = computed(() => this._status()?.features?.elegantOta ?? false);
+  readonly hasBleMidi = computed(() => this._status()?.features?.bleMidi ?? false);
+  readonly hasRtpMidi = computed(() => this._status()?.features?.rtpMidi ?? false);
 
   connect(): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
@@ -117,8 +129,28 @@ export class ConnectionService {
     fadeTime: number;
     waveEnabled: boolean;
     waveWidth: number;
+    splitPoint: number;
+    splitLeftColor: [number, number, number];
+    splitRightColor: [number, number, number];
   }>): void {
     this.send('set_settings', settings);
+  }
+
+  // BLE MIDI commands
+  scanBleMidi(): void {
+    this.send('scan_ble_midi');
+  }
+
+  stopBleScan(): void {
+    this.send('stop_ble_scan');
+  }
+
+  // OTA Update
+  getOtaUrl(): string {
+    const baseUrl = environment.production
+      ? `http://${window.location.host}`
+      : environment.wsUrl.replace('ws://', 'http://').replace('/ws', '');
+    return `${baseUrl}/update`;
   }
 
   startCalibration(type: 'quick' | 'detailed' = 'quick'): void {
@@ -154,12 +186,19 @@ export class ConnectionService {
           this._status.set({
             version: message.version,
             midiConnected: message.midi_connected,
+            bleConnected: message.ble_connected ?? false,
+            rtpConnected: message.rtp_connected ?? false,
             mode: message.mode,
             brightness: message.brightness,
             calibrated: message.calibrated,
             wsClients: message.ws_clients,
             freeHeap: message.free_heap,
-            wifi: message.wifi
+            wifi: message.wifi,
+            features: {
+              elegantOta: message.features?.elegant_ota ?? false,
+              bleMidi: message.features?.ble_midi ?? false,
+              rtpMidi: message.features?.rtp_midi ?? false
+            }
           });
           break;
 

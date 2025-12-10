@@ -12,7 +12,10 @@ enum class LedMode {
     LEARNING,           // Highlight keys to press
     DEMO,               // Auto playback visualization
     AMBIENT,            // Decorative effects
-    FALLING_NOTES       // Notes falling down the strip
+    FALLING_NOTES,      // Notes falling down the strip
+    SPLIT,              // Split keyboard into two colored zones
+    VELOCITY,           // Color based on velocity
+    RANDOM              // Random colors for each note
 };
 
 // Ambient effect types
@@ -62,6 +65,14 @@ public:
     void setAmbientEffect(AmbientEffect effect);
     void setAmbientSpeed(uint8_t speed);
 
+    // Split mode
+    void setSplitPoint(uint8_t note);
+    void setSplitLeftColor(CRGB color);
+    void setSplitRightColor(CRGB color);
+    uint8_t getSplitPoint() const { return _splitPoint; }
+    CRGB getSplitLeftColor() const { return _splitLeftColor; }
+    CRGB getSplitRightColor() const { return _splitRightColor; }
+
     // Calibration
     void setCalibration(uint8_t firstNote, uint8_t firstLed, uint8_t lastNote, uint8_t lastLed);
     int noteToLed(uint8_t note) const;
@@ -98,6 +109,14 @@ private:
     uint8_t _ambientSpeed;
     uint8_t _ambientPhase;
 
+    // Split mode settings
+    uint8_t _splitPoint;        // MIDI note for split point (default: 60 = C4)
+    CRGB _splitLeftColor;       // Color for left side (low notes)
+    CRGB _splitRightColor;      // Color for right side (high notes)
+
+    // Random mode
+    uint8_t _noteHues[MIDI_NOTE_COUNT];  // Store random hue for each note
+
     // Calibration
     uint8_t _firstNote;
     uint8_t _firstLed;
@@ -115,6 +134,9 @@ private:
     void updateDemo();
     void updateAmbient();
     void updateFallingNotes();
+    void updateSplit();
+    void updateVelocity();
+    void updateRandom();
 
     void applyFade();
     void applyWaveEffect(uint8_t centerLed);

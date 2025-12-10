@@ -7,8 +7,13 @@
 
 // --- Version ---
 #ifndef PIANO_LED_VERSION
-#define PIANO_LED_VERSION "0.1.0"
+#define PIANO_LED_VERSION "0.2.0"
 #endif
+
+// --- Feature Flags ---
+#define USE_ELEGANT_OTA     1   // Enable ElegantOTA web updates
+#define USE_BLE_MIDI        1   // Enable Bluetooth MIDI
+#define USE_RTP_MIDI        1   // Enable WiFi MIDI (AppleMIDI/rtpMIDI)
 
 // --- LED Strip ---
 #define LED_PIN             48          // GPIO for WS2812B data
@@ -43,6 +48,14 @@
 
 // --- mDNS ---
 #define MDNS_HOSTNAME       "pianora"
+
+// --- Bluetooth MIDI ---
+#define BLE_DEVICE_NAME     "Pianora-BLE"
+#define BLE_SCAN_TIMEOUT    5           // Seconds to scan for BLE devices
+
+// --- RTP MIDI (AppleMIDI) ---
+#define RTP_MIDI_PORT       5004        // Default rtpMIDI port
+#define RTP_SESSION_NAME    "Pianora"
 
 // --- File System ---
 #define CONFIG_FILE         "/config.json"

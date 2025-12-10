@@ -45,6 +45,9 @@ public:
     // Client count
     uint8_t getClientCount() const;
 
+    // Get underlying server (for ElegantOTA)
+    AsyncWebServer& getServer() { return _server; }
+
 private:
     AsyncWebServer _server;
     AsyncWebSocket _ws;
