@@ -15,16 +15,16 @@
 #endif
 
 // Global instance
-WebServer webServer;
+PianoraWebServer webServer;
 
-WebServer::WebServer()
+PianoraWebServer::PianoraWebServer()
     : _server(HTTP_PORT)
     , _ws("/ws")
     , _lastStatusBroadcast(0)
 {
 }
 
-void WebServer::begin() {
+void PianoraWebServer::begin() {
     // Setup WebSocket
     _ws.onEvent([this](AsyncWebSocket* server, AsyncWebSocketClient* client,
                        AwsEventType type, void* arg, uint8_t* data, size_t len) {
@@ -40,7 +40,7 @@ void WebServer::begin() {
     DEBUG_PRINTLN("Web server started");
 }
 
-void WebServer::update() {
+void PianoraWebServer::update() {
     // Cleanup old WebSocket clients
     _ws.cleanupClients();
 
@@ -54,7 +54,7 @@ void WebServer::update() {
     }
 }
 
-void WebServer::setupRoutes() {
+void PianoraWebServer::setupRoutes() {
     // Serve static files from LittleFS (PWA)
     _server.serveStatic("/", LittleFS, "/www/").setDefaultFile("index.html");
 
@@ -137,7 +137,7 @@ void WebServer::setupRoutes() {
     });
 }
 
-void WebServer::handleGetStatus(AsyncWebServerRequest* request) {
+void PianoraWebServer::handleGetStatus(AsyncWebServerRequest* request) {
     JsonDocument doc;
 
     doc["version"] = PIANO_LED_VERSION;
@@ -164,11 +164,11 @@ void WebServer::handleGetStatus(AsyncWebServerRequest* request) {
     request->send(200, "application/json", response);
 }
 
-void WebServer::handleGetSettings(AsyncWebServerRequest* request) {
+void PianoraWebServer::handleGetSettings(AsyncWebServerRequest* request) {
     request->send(200, "application/json", settingsManager.toJson());
 }
 
-void WebServer::handlePostSettings(AsyncWebServerRequest* request, uint8_t* data, size_t len) {
+void PianoraWebServer::handlePostSettings(AsyncWebServerRequest* request, uint8_t* data, size_t len) {
     // Parse JSON
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, data, len);
@@ -193,7 +193,7 @@ void WebServer::handlePostSettings(AsyncWebServerRequest* request, uint8_t* data
     }
 }
 
-void WebServer::handleGetFiles(AsyncWebServerRequest* request) {
+void PianoraWebServer::handleGetFiles(AsyncWebServerRequest* request) {
     JsonDocument doc;
     JsonArray files = doc["files"].to<JsonArray>();
 
@@ -233,7 +233,7 @@ void WebServer::handleGetFiles(AsyncWebServerRequest* request) {
     request->send(200, "application/json", response);
 }
 
-void WebServer::handleUploadFile(AsyncWebServerRequest* request, const String& filename,
+void PianoraWebServer::handleUploadFile(AsyncWebServerRequest* request, const String& filename,
                                   size_t index, uint8_t* data, size_t len, bool final) {
     static File uploadFile;
 
@@ -257,7 +257,7 @@ void WebServer::handleUploadFile(AsyncWebServerRequest* request, const String& f
     }
 }
 
-void WebServer::handleDeleteFile(AsyncWebServerRequest* request) {
+void PianoraWebServer::handleDeleteFile(AsyncWebServerRequest* request) {
     if (!request->hasParam("path")) {
         request->send(400, "application/json", "{\"error\":\"Missing path parameter\"}");
         return;
@@ -272,7 +272,7 @@ void WebServer::handleDeleteFile(AsyncWebServerRequest* request) {
     }
 }
 
-void WebServer::handleOtaUpdate(AsyncWebServerRequest* request, const String& filename,
+void PianoraWebServer::handleOtaUpdate(AsyncWebServerRequest* request, const String& filename,
                                  size_t index, uint8_t* data, size_t len, bool final) {
     if (index == 0) {
         DEBUG_PRINTF("OTA Update start: %s\n", filename.c_str());
@@ -298,7 +298,7 @@ void WebServer::handleOtaUpdate(AsyncWebServerRequest* request, const String& fi
 // WebSocket handlers
 // ============================================================================
 
-void WebServer::onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
+void PianoraWebServer::onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                           AwsEventType type, void* arg, uint8_t* data, size_t len) {
     switch (type) {
         case WS_EVT_CONNECT:
@@ -330,7 +330,7 @@ void WebServer::onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
     }
 }
 
-void WebServer::handleWsMessage(AsyncWebSocketClient* client, uint8_t* data, size_t len) {
+void PianoraWebServer::handleWsMessage(AsyncWebSocketClient* client, uint8_t* data, size_t len) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, data, len);
 
@@ -372,7 +372,7 @@ void WebServer::handleWsMessage(AsyncWebSocketClient* client, uint8_t* data, siz
 // Broadcast methods
 // ============================================================================
 
-void WebServer::broadcastMidiNote(uint8_t note, uint8_t velocity, bool isNoteOn) {
+void PianoraWebServer::broadcastMidiNote(uint8_t note, uint8_t velocity, bool isNoteOn) {
     if (_ws.count() == 0) return;
 
     JsonDocument doc;
@@ -386,7 +386,7 @@ void WebServer::broadcastMidiNote(uint8_t note, uint8_t velocity, bool isNoteOn)
     _ws.textAll(message);
 }
 
-void WebServer::broadcastStatus() {
+void PianoraWebServer::broadcastStatus() {
     if (_ws.count() == 0) return;
 
     JsonDocument doc;
@@ -435,7 +435,7 @@ void WebServer::broadcastStatus() {
     _ws.textAll(message);
 }
 
-void WebServer::broadcastCalibrationStep(uint8_t step, uint8_t ledIndex) {
+void PianoraWebServer::broadcastCalibrationStep(uint8_t step, uint8_t ledIndex) {
     if (_ws.count() == 0) return;
 
     JsonDocument doc;
@@ -448,7 +448,7 @@ void WebServer::broadcastCalibrationStep(uint8_t step, uint8_t ledIndex) {
     _ws.textAll(message);
 }
 
-void WebServer::broadcastError(const char* message) {
+void PianoraWebServer::broadcastError(const char* message) {
     if (_ws.count() == 0) return;
 
     JsonDocument doc;
@@ -460,7 +460,7 @@ void WebServer::broadcastError(const char* message) {
     _ws.textAll(msg);
 }
 
-uint8_t WebServer::getClientCount() const {
+uint8_t PianoraWebServer::getClientCount() const {
     return _ws.count();
 }
 
@@ -468,7 +468,7 @@ uint8_t WebServer::getClientCount() const {
 // Message processors
 // ============================================================================
 
-void WebServer::processSetMode(JsonDocument& doc) {
+void PianoraWebServer::processSetMode(JsonDocument& doc) {
     if (doc["payload"].containsKey("mode")) {
         int mode = doc["payload"]["mode"];
         ledController.setMode(static_cast<LedMode>(mode));
@@ -476,7 +476,7 @@ void WebServer::processSetMode(JsonDocument& doc) {
     }
 }
 
-void WebServer::processSetSettings(JsonDocument& doc) {
+void PianoraWebServer::processSetSettings(JsonDocument& doc) {
     JsonObject payload = doc["payload"];
 
     if (payload.containsKey("brightness")) {
@@ -516,35 +516,35 @@ void WebServer::processSetSettings(JsonDocument& doc) {
     }
 }
 
-void WebServer::processStartCalibration(JsonDocument& doc) {
+void PianoraWebServer::processStartCalibration(JsonDocument& doc) {
     // TODO: Implement calibration state machine
     DEBUG_PRINTLN("Calibration started");
     broadcastCalibrationStep(0, 0);
 }
 
-void WebServer::processCalibrationInput(JsonDocument& doc) {
+void PianoraWebServer::processCalibrationInput(JsonDocument& doc) {
     // TODO: Handle calibration input
     uint8_t note = doc["payload"]["note"];
     DEBUG_PRINTF("Calibration input: note %d\n", note);
 }
 
-void WebServer::processPlaySong(JsonDocument& doc) {
+void PianoraWebServer::processPlaySong(JsonDocument& doc) {
     // TODO: Implement song playback
     const char* filename = doc["payload"]["filename"];
     DEBUG_PRINTF("Play song: %s\n", filename);
 }
 
-void WebServer::processStopSong(JsonDocument& doc) {
+void PianoraWebServer::processStopSong(JsonDocument& doc) {
     // TODO: Stop playback
     DEBUG_PRINTLN("Stop song");
 }
 
-void WebServer::processStartRecording(JsonDocument& doc) {
+void PianoraWebServer::processStartRecording(JsonDocument& doc) {
     // TODO: Start recording
     DEBUG_PRINTLN("Recording started");
 }
 
-void WebServer::processStopRecording(JsonDocument& doc) {
+void PianoraWebServer::processStopRecording(JsonDocument& doc) {
     // TODO: Stop recording and save
     DEBUG_PRINTLN("Recording stopped");
 }

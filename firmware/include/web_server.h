@@ -29,9 +29,9 @@ namespace WsMessageType {
     constexpr const char* GET_FILES = "get_files";
 }
 
-class WebServer {
+class PianoraWebServer {
 public:
-    WebServer();
+    PianoraWebServer();
 
     void begin();
     void update();
@@ -85,6 +85,6 @@ private:
     String createJsonMessage(const char* type, JsonDocument& payload);
 };
 
-extern WebServer webServer;
+extern PianoraWebServer webServer;
 
 #endif // WEB_SERVER_H

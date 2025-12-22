@@ -1,2 +1,5 @@
 .claude
 CLAUDE.md
+/firmware/.pio
+/pianolux-esp32
+/firmware_minimal

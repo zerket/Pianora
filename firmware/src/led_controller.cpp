@@ -29,14 +29,16 @@ LedController::LedController()
     memset(_noteStates, 0, sizeof(_noteStates));
     memset(_noteFade, 0, sizeof(_noteFade));
     memset(_targetNotes, 0, sizeof(_targetNotes));
-
-    // Initialize random hues for each note
-    for (uint8_t i = 0; i < MIDI_NOTE_COUNT; i++) {
-        _noteHues[i] = random8();
-    }
+    memset(_noteHues, 0, sizeof(_noteHues));
+    // Note: random hues will be initialized in begin() after system is ready
 }
 
 void LedController::begin() {
+    // Initialize random hues for each note (moved from constructor)
+    for (uint8_t i = 0; i < MIDI_NOTE_COUNT; i++) {
+        _noteHues[i] = random8();
+    }
+
     FastLED.addLeds<LED_TYPE, LED_PIN, LED_COLOR_ORDER>(_leds, LED_COUNT);
     FastLED.setBrightness(_brightness);
     FastLED.clear();

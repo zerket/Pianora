@@ -11,11 +11,14 @@
 #endif
 
 // --- Feature Flags ---
-#define USE_ELEGANT_OTA     1   // Enable ElegantOTA web updates
-#define USE_BLE_MIDI        1   // Enable Bluetooth MIDI
-#define USE_RTP_MIDI        1   // Enable WiFi MIDI (AppleMIDI/rtpMIDI)
+#define USE_ELEGANT_OTA     0   // Disabled - conflicts with ESPAsyncWebServer
+#define USE_BLE_MIDI        0   // Disabled - API incompatibility, fix later
+#define USE_RTP_MIDI        0   // Temporarily disabled for testing
+#define USE_USB_MIDI        0   // Temporarily disabled - causes boot loop
 
 // --- LED Strip ---
+// GPIO48 is used for WS2812B LED strip
+// On DevKitC-1 boards, GPIO48 is the onboard RGB LED
 #define LED_PIN             48          // GPIO for WS2812B data
 #define LED_COUNT           144         // Number of LEDs (adjustable)
 #define LED_TYPE            WS2812B

@@ -17,12 +17,21 @@
  */
 
 #include <Arduino.h>
+#include <LittleFS.h>
 #include "config.h"
 #include "led_controller.h"
 #include "midi_handler.h"
 #include "wifi_manager.h"
 #include "web_server.h"
 #include "settings_manager.h"
+
+// Very early debug output (before global constructors complete)
+// This runs BEFORE setup() and can help diagnose early crashes
+__attribute__((constructor(101)))
+void earlyDebug() {
+    // Note: Serial may not be ready here, but we try anyway
+    // This helps identify if crash is in global constructors
+}
 
 #if USE_BLE_MIDI
 #include "ble_midi.h"
@@ -113,58 +122,84 @@ void onRtpMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
 // ============================================================================
 
 void setup() {
-    // Serial for debugging
+    // Serial for debugging - FIRST THING
     Serial.begin(115200);
-    delay(1000);
 
-    DEBUG_PRINTLN("\n\n");
+    // Immediate output to confirm we reached setup()
+    Serial.println("\n\n[BOOT] Serial initialized");
+    Serial.flush();
+
+    delay(1000);  // Shorter delay for first test
+    Serial.println("[BOOT] After delay");
+    Serial.flush();
+
+    DEBUG_PRINTLN("\n");
     DEBUG_PRINTLN("========================================");
-    DEBUG_PRINTLN("   Piano-LED v" PIANO_LED_VERSION);
+    DEBUG_PRINTLN("   Pianora v" PIANO_LED_VERSION);
+    DEBUG_PRINTLN("   ESP32-S3 Piano LED Controller");
     DEBUG_PRINTLN("========================================");
     DEBUG_PRINTLN();
 
     // Initialize LittleFS
-    DEBUG_PRINT("Initializing LittleFS... ");
+    Serial.println("[BOOT] Starting LittleFS...");
+    Serial.flush();
     if (!LittleFS.begin(true)) {
-        DEBUG_PRINTLN("FAILED!");
+        Serial.println("[BOOT] LittleFS FAILED!");
     } else {
-        DEBUG_PRINTLN("OK");
+        Serial.println("[BOOT] LittleFS OK");
     }
+    Serial.flush();
 
     // Load settings
-    DEBUG_PRINT("Loading settings... ");
+    Serial.println("[BOOT] Loading settings...");
+    Serial.flush();
     settingsManager.begin();
     if (settingsManager.load()) {
-        DEBUG_PRINTLN("OK");
+        Serial.println("[BOOT] Settings OK");
     } else {
-        DEBUG_PRINTLN("Using defaults");
+        Serial.println("[BOOT] Settings: Using defaults");
     }
+    Serial.flush();
 
     // Initialize LED controller
-    DEBUG_PRINT("Initializing LEDs... ");
+    Serial.println("[BOOT] Starting LEDs...");
+    Serial.flush();
     ledController.begin();
-    DEBUG_PRINTLN("OK");
+    Serial.println("[BOOT] LEDs OK");
+    Serial.flush();
 
     // Play startup animation
+    Serial.println("[BOOT] Playing animation...");
+    Serial.flush();
     ledController.playStartupAnimation();
+    Serial.println("[BOOT] Animation done");
+    Serial.flush();
 
     // Initialize WiFi
-    DEBUG_PRINT("Initializing WiFi... ");
+    Serial.println("[BOOT] Starting WiFi...");
+    Serial.flush();
     wifiManager.begin();
-    DEBUG_PRINTLN("OK");
+    Serial.println("[BOOT] WiFi OK");
+    Serial.flush();
 
     // Initialize web server
-    DEBUG_PRINT("Starting web server... ");
+    Serial.println("[BOOT] Starting web server...");
+    Serial.flush();
     webServer.begin();
-    DEBUG_PRINTLN("OK");
+    Serial.println("[BOOT] Web server OK");
+    Serial.flush();
 
-    // Initialize USB MIDI handler
-    DEBUG_PRINT("Initializing USB MIDI... ");
+    // Initialize USB MIDI handler (before WiFi for USB Host priority)
+    #if USE_USB_MIDI
+    DEBUG_PRINT("Initializing USB MIDI Host... ");
     midiHandler.begin();
     midiHandler.setNoteOnCallback(onMidiNoteOn);
     midiHandler.setNoteOffCallback(onMidiNoteOff);
     midiHandler.setHotkeyCallback(onHotkey);
     DEBUG_PRINTLN("OK");
+    #else
+    DEBUG_PRINTLN("USB MIDI: Disabled");
+    #endif
 
     #if USE_BLE_MIDI
     // Initialize BLE MIDI
@@ -230,7 +265,9 @@ void setup() {
 
 void loop() {
     // Process USB MIDI input
+    #if USE_USB_MIDI
     midiHandler.update();
+    #endif
 
     #if USE_BLE_MIDI
     // Process BLE MIDI

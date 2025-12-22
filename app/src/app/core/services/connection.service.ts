@@ -65,7 +65,7 @@ export class ConnectionService {
     }
 
     const wsUrl = environment.production
-      ? `ws://${window.location.host}/ws`
+       ? `ws://${window.location.hostname}:81/`
       : environment.wsUrl;
 
     console.log('Connecting to WebSocket:', wsUrl);

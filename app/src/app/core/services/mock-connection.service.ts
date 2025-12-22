@@ -22,6 +22,8 @@ export class MockConnectionService {
   private _status = signal<ControllerStatus>({
     version: '0.1.0-mock',
     midiConnected: true,
+    bleConnected: false,
+    rtpConnected: false,
     mode: 1,
     brightness: 128,
     calibrated: true,
@@ -30,6 +32,11 @@ export class MockConnectionService {
     wifi: {
       apIp: '192.168.4.1',
       staConnected: false
+    },
+    features: {
+      elegantOta: false,
+      bleMidi: false,
+      rtpMidi: false
     }
   });
   private _lastMidiNote = signal<MidiNote | null>(null);
