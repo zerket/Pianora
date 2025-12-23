@@ -1,0 +1,94 @@
+te
+[STEP] WebSocket init... OK (port 81)
+
+=====================================
+   Ready!
+   AP: Pianora / pianora123
+   AP IP: 192.168.4.1
+   mDNS: http://pianora.local/
+   OTA:  http://192.168.4.1/update
+=====================================
+
+[ 15705][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /settings
+[ 15716][E][vfs_api.cpp:105] open(): /littlefs/settings does not exist, no permits for creation
+[ 15853][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[ 16083][E][WebServer.cpp:638] _handleRequest(): request handler[HTTP] Request: /chunk-FA77DWVB.js
+ not found
+[HTTP] Request: /chunk-U6DRV7WC.js
+[ 16212][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-EQ24THKI.js
+[ 16621][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /polyfills-B6TNHZQ6.js
+[ 16730][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /main-ZMIFYXAB.js
+[ 16936][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /styles-2A4E42UL.css
+[ 17019][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-XLJ7HV2S.js
+[ 17125][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /favicon.ico
+[ 17136][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
+[ 17238][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /assets/icons/icon-192x192.png
+[ 17249][E][vfs_api.cpp:105] open(): /littlefs/assets/icons/icon-192x192.png does not exist, no permits for creation
+[ 17340][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-PH25IKVI.js
+[INFO] Uptime: 30 sec, Heap: 193824, WS: 0, WiFi: 192.168.0.81
+[INFO] Uptime: 60 sec, Heap: 193824, WS: 0, WiFi: 192.168.0.81
+[ 69022][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /
+[WS] Client 0 connected from 192.168.4.2
+[WS] Client 0: {"type":"get_status","payload":{}}
+[ 76043][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[ 76053][E][vfs_api.cpp:105] open(): /littlefs/settings does not[HTTP] Request: /settings
+ exist, no permits for creation
+[WS] Client 0 disconnected
+[ 76155][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-FA77DWVB.js
+[ 76365][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-U6DRV7WC.js
+[ 76458][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-EQ24THKI.js
+[ 76905][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[ 77004][E][WebServer.cpp:638] _handleRequest(): request handler[HTTP] Request: /polyfills-B6TNHZQ6.js
+ not found
+[HTTP] Request: /main-ZMIFYXAB.js
+[ 77212][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /styles-2A4E42UL.css
+[ 77264][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-XLJ7HV2S.js
+[ 77366][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /favicon.ico
+[ 77377][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
+[ 77467][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /assets/icons/icon-192x192.png
+[ 77478][E][vfs_api.cpp:105] open(): /littlefs/assets/icons/icon-192x192.png does not exist, no permits for creation
+[ 77584][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-PH25IKVI.js
+[WS] Client 0 connected from 192.168.4.2
+[WS] Client 0: {"type":"get_status","payload":{}}
+[WS] Client 0: {"type":"wifi_scan","payload":{}}
+[WS] Starting WiFi scan...
+[INFO] Uptime: 90 sec, Heap: 188456, WS: 1, WiFi: 192.168.0.81
+[WS] Client 0: {"type":"scan_ble_midi","payload":{}}
+[WS] Starting BLE MIDI scan...
+[BLE] Starting scan for MIDI devices...
+[BLE] Scan complete, found 0 MIDI devices
+[WS] Client 0: {"type":"scan_ble_midi","payload":{}}
+[WS] Starting BLE MIDI scan...
+[BLE] Starting scan for MIDI devices...
+[BLE] Scan complete, found 0 MIDI devices
+[WS] Client 0: {"type":"scan_ble_midi","payload":{}}
+[WS] Starting BLE MIDI scan...
+[BLE] Starting scan for MIDI devices...
+[BLE] Scan complete, found 0 MIDI devices
+[WS] Client 0: {"type":"scan_ble_midi","payload":{}}
+[WS] Starting BLE MIDI scan...
+[BLE] Starting scan for MIDI devices...
+[BLE] Scan complete, found 0 MIDI devices
+[WS] Client 0: {"type":"scan_ble_midi","payload":{}}
+[WS] Starting BLE MIDI scan...
+[BLE] Starting scan for MIDI devices...
+[BLE] Scan complete, found 0 MIDI devices
+[INFO] Uptime: 120 sec, Heap: 188140, WS: 1, WiFi: 192.168.0.81

@@ -104,6 +104,12 @@ export const es: TranslationKeys = {
   'settings.networkSsid': 'SSID de red',
   'settings.password': 'Contraseña',
   'settings.apName': 'Nombre del AP',
+  'settings.selectNetwork': 'Seleccionar red',
+  'settings.notConnected': 'No conectado',
+  'settings.disconnect': 'Desconectar',
+  'settings.connect': 'Conectar',
+  'settings.connecting': 'Conectando...',
+  'settings.accessVia': 'Acceder vía',
   'settings.system': 'Sistema',
   'settings.firmwareVersion': 'Versión de firmware',
   'settings.freeMemory': 'Memoria libre',
@@ -119,6 +125,12 @@ export const es: TranslationKeys = {
   'settings.otaUpdate': 'Actualización OTA',
   'settings.otaUpdateDesc': 'Actualizar firmware inalámbricamente',
   'settings.openOtaPage': 'Abrir página de actualización',
+
+  // BLE MIDI
+  'settings.bleMidi': 'Bluetooth MIDI',
+  'settings.bleDevice': 'Dispositivo',
+  'settings.bleNotConnected': 'Piano no conectado',
+  'settings.selectDevice': 'Seleccionar dispositivo...',
 
   // Calibration page
   'calibration.title': 'Calibración',
@@ -163,6 +175,7 @@ export const es: TranslationKeys = {
   'common.unknown': 'Desconocido',
   'common.leds': 'LEDs',
   'common.ms': 'ms',
+  'common.or': 'o',
   'common.confirmRestart': '¿Está seguro de que desea reiniciar el controlador?',
   'common.confirmFactoryReset': 'Esto borrará todos los ajustes y datos. ¿Está seguro?',
   'common.confirmFactoryResetFinal': 'Esta acción no se puede deshacer. ¿Continuar?',

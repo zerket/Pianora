@@ -119,6 +119,12 @@ export interface TranslationKeys {
   'settings.networkSsid': string;
   'settings.password': string;
   'settings.apName': string;
+  'settings.selectNetwork': string;
+  'settings.notConnected': string;
+  'settings.disconnect': string;
+  'settings.connect': string;
+  'settings.connecting': string;
+  'settings.accessVia': string;
   'settings.system': string;
   'settings.firmwareVersion': string;
   'settings.freeMemory': string;
@@ -134,6 +140,12 @@ export interface TranslationKeys {
   'settings.otaUpdate': string;
   'settings.otaUpdateDesc': string;
   'settings.openOtaPage': string;
+
+  // BLE MIDI
+  'settings.bleMidi': string;
+  'settings.bleDevice': string;
+  'settings.bleNotConnected': string;
+  'settings.selectDevice': string;
 
   // Calibration page
   'calibration.title': string;
@@ -178,6 +190,7 @@ export interface TranslationKeys {
   'common.unknown': string;
   'common.leds': string;
   'common.ms': string;
+  'common.or': string;
   'common.confirmRestart': string;
   'common.confirmFactoryReset': string;
   'common.confirmFactoryResetFinal': string;

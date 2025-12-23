@@ -58,6 +58,12 @@ export const en: TranslationKeys = {
   'settings.otaUpdateDesc': 'Update firmware wirelessly',
   'settings.openOtaPage': 'Open Update Page',
 
+  // BLE MIDI
+  'settings.bleMidi': 'Bluetooth MIDI',
+  'settings.bleDevice': 'Device',
+  'settings.bleNotConnected': 'No piano connected',
+  'settings.selectDevice': 'Select device...',
+
   // Learn page
   'learn.title': 'Learn',
   'learn.calibrationRequired': 'Calibration Required',
@@ -109,6 +115,12 @@ export const en: TranslationKeys = {
   'settings.networkSsid': 'Network SSID',
   'settings.password': 'Password',
   'settings.apName': 'AP Name',
+  'settings.selectNetwork': 'Select network',
+  'settings.notConnected': 'Not connected',
+  'settings.disconnect': 'Disconnect',
+  'settings.connect': 'Connect',
+  'settings.connecting': 'Connecting...',
+  'settings.accessVia': 'Access via',
   'settings.system': 'System',
   'settings.firmwareVersion': 'Firmware Version',
   'settings.freeMemory': 'Free Memory',
@@ -163,6 +175,7 @@ export const en: TranslationKeys = {
   'common.unknown': 'Unknown',
   'common.leds': 'LEDs',
   'common.ms': 'ms',
+  'common.or': 'or',
   'common.confirmRestart': 'Are you sure you want to restart the controller?',
   'common.confirmFactoryReset': 'This will erase all settings and data. Are you sure?',
   'common.confirmFactoryResetFinal': 'This action cannot be undone. Continue?',

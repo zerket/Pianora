@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 import { I18nService } from '@core/services/i18n.service';
 import { LedMode } from '@core/models/settings.model';
+import { PianoVisualizerComponent } from '@shared/components/piano-visualizer/piano-visualizer.component';
 
 interface ModeOption {
   mode: LedMode;
@@ -15,7 +16,7 @@ interface ModeOption {
 @Component({
   selector: 'app-play',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PianoVisualizerComponent],
   template: `
     <div class="play-page">
       <h1>{{ i18n.t('play.title') }}</h1>
@@ -37,6 +38,11 @@ interface ModeOption {
           }
         </div>
       </section>
+
+      <!-- Piano Visualizer -->
+      @if (currentMode() === LedMode.VISUALIZER) {
+        <app-piano-visualizer></app-piano-visualizer>
+      }
 
       <!-- Quick Settings -->
       <section class="settings-section card">

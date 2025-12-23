@@ -2,4 +2,6 @@
 CLAUDE.md
 /firmware/.pio
 /pianolux-esp32
-/firmware_minimal
+/firmware_minimal/.pio
+/firmware_minimal/data
+/firmware_minimal/flash_files

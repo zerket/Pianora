@@ -56,6 +56,21 @@ import { I18nService } from '@core/services/i18n.service';
       gap: var(--spacing-xs);
     }
 
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-text-secondary);
+    }
+
+    .status-dot.connected {
+      background-color: var(--color-success, #4caf50);
+    }
+
+    .status-dot.disconnected {
+      background-color: var(--color-error, #f44336);
+    }
+
     .status-label {
       color: var(--color-text-secondary);
     }

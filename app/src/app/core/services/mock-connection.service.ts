@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { ControllerStatus, MidiNote } from './connection.service';
+import { ControllerStatus, MidiNote, WiFiNetwork, WiFiStatus } from './connection.service';
 
 /**
  * Mock Connection Service for testing without hardware.
@@ -30,17 +30,33 @@ export class MockConnectionService {
     wsClients: 1,
     freeHeap: 200000,
     wifi: {
+      mode: 'ap',
       apIp: '192.168.4.1',
-      staConnected: false
+      apSSID: 'Pianora-Mock',
+      staConnected: false,
+      staSSID: '',
+      staIp: '',
+      rssi: 0
     },
     features: {
-      elegantOta: false,
+      elegantOta: true,
       bleMidi: false,
-      rtpMidi: false
+      rtpMidi: false,
+      wifiSta: true
     }
   });
   private _lastMidiNote = signal<MidiNote | null>(null);
   private _activeNotes = signal<Set<number>>(new Set());
+  private _wifiNetworks = signal<WiFiNetwork[]>([]);
+  private _wifiScanning = signal(false);
+  private _wifiConnecting = signal(false);
+  private _lastWifiStatus = signal<WiFiStatus | null>(null);
+
+  // BLE MIDI state
+  private _bleScanning = signal(false);
+  private _bleMidiConnected = signal(false);
+  private _bleDeviceName = signal('');
+  private _bleDevices = signal<{ name: string; address: string }[]>([]);
 
   // Public computed signals
   readonly connected = this._connected.asReadonly();
@@ -49,6 +65,20 @@ export class MockConnectionService {
   readonly activeNotes = this._activeNotes.asReadonly();
   readonly midiConnected = computed(() => this._status()?.midiConnected ?? false);
   readonly calibrated = computed(() => this._status()?.calibrated ?? false);
+  readonly staConnected = computed(() => this._status()?.wifi?.staConnected ?? false);
+  readonly staIP = computed(() => this._status()?.wifi?.staIp ?? '');
+  readonly staSSID = computed(() => this._status()?.wifi?.staSSID ?? '');
+  readonly wifiNetworks = this._wifiNetworks.asReadonly();
+  readonly wifiScanning = this._wifiScanning.asReadonly();
+  readonly wifiConnecting = this._wifiConnecting.asReadonly();
+  readonly lastWifiStatus = this._lastWifiStatus.asReadonly();
+  readonly hasOta = computed(() => this._status()?.features?.elegantOta ?? false);
+
+  // BLE MIDI public signals
+  readonly bleScanning = this._bleScanning.asReadonly();
+  readonly bleConnected = this._bleMidiConnected.asReadonly();
+  readonly bleDeviceName = this._bleDeviceName.asReadonly();
+  readonly bleDevices = this._bleDevices.asReadonly();
 
   private noteInterval: any = null;
 
@@ -105,6 +135,106 @@ export class MockConnectionService {
 
   stopRecording(): void {
     console.log('[MOCK] Recording stopped');
+  }
+
+  // WiFi methods
+  scanWifi(): void {
+    console.log('[MOCK] Scanning WiFi networks');
+    this._wifiScanning.set(true);
+    this._wifiNetworks.set([]);
+
+    // Simulate network scan
+    setTimeout(() => {
+      this._wifiNetworks.set([
+        { ssid: 'Home-Network', rssi: -45, secure: true },
+        { ssid: 'Guest-WiFi', rssi: -60, secure: true },
+        { ssid: 'OpenNetwork', rssi: -75, secure: false }
+      ]);
+      this._wifiScanning.set(false);
+    }, 1500);
+  }
+
+  connectWifi(ssid: string, password: string): void {
+    console.log('[MOCK] Connecting to WiFi:', ssid);
+    this._wifiConnecting.set(true);
+
+    // Simulate connection
+    setTimeout(() => {
+      this._wifiConnecting.set(false);
+      this._lastWifiStatus.set({
+        success: true,
+        message: `Connected to ${ssid}`,
+        connected: true,
+        ip: '192.168.1.100'
+      });
+      this._status.update(s => ({
+        ...s,
+        wifi: {
+          ...s.wifi,
+          staConnected: true,
+          staSSID: ssid,
+          staIp: '192.168.1.100',
+          rssi: -50
+        }
+      }));
+    }, 2000);
+  }
+
+  disconnectWifi(): void {
+    console.log('[MOCK] Disconnecting WiFi');
+    this._status.update(s => ({
+      ...s,
+      wifi: {
+        ...s.wifi,
+        staConnected: false,
+        staSSID: '',
+        staIp: '',
+        rssi: 0
+      }
+    }));
+  }
+
+  getOtaUrl(): string {
+    return 'http://192.168.4.1/update';
+  }
+
+  // BLE MIDI methods
+  scanBleMidi(): void {
+    console.log('[MOCK] Scanning BLE MIDI devices');
+    this._bleScanning.set(true);
+    this._bleDevices.set([]);
+
+    // Simulate BLE scan
+    setTimeout(() => {
+      this._bleDevices.set([
+        { name: 'Kawai KDP120', address: 'AA:BB:CC:DD:EE:FF' },
+        { name: 'Roland FP-30X', address: '11:22:33:44:55:66' },
+        { name: 'Yamaha P-125', address: '77:88:99:AA:BB:CC' }
+      ]);
+      this._bleScanning.set(false);
+    }, 2000);
+  }
+
+  stopBleScan(): void {
+    console.log('[MOCK] Stopping BLE scan');
+    this._bleScanning.set(false);
+  }
+
+  connectBleMidi(address: string): void {
+    console.log('[MOCK] Connecting to BLE MIDI:', address);
+    const device = this._bleDevices().find(d => d.address === address);
+
+    setTimeout(() => {
+      this._bleMidiConnected.set(true);
+      this._bleDeviceName.set(device?.name ?? 'Unknown Device');
+      console.log('[MOCK] Connected to', device?.name);
+    }, 1500);
+  }
+
+  disconnectBleMidi(): void {
+    console.log('[MOCK] Disconnecting BLE MIDI');
+    this._bleMidiConnected.set(false);
+    this._bleDeviceName.set('');
   }
 
   // =========================================================================

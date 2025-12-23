@@ -14,6 +14,16 @@ export interface IConnectionService {
   midiConnected: () => boolean;
   calibrated: () => boolean;
 
+  // WiFi-related signals
+  staConnected: () => boolean;
+  staIP: () => string;
+  staSSID: () => string;
+  wifiNetworks: () => any[];
+  wifiScanning: () => boolean;
+  wifiConnecting: () => boolean;
+  lastWifiStatus: () => any;
+  hasOta: () => boolean;
+
   connect(): void;
   disconnect(): void;
   send(type: string, payload?: any): void;
@@ -26,6 +36,24 @@ export interface IConnectionService {
   stopSong(): void;
   startRecording(): void;
   stopRecording(): void;
+
+  // WiFi methods
+  scanWifi(): void;
+  connectWifi(ssid: string, password: string): void;
+  disconnectWifi(): void;
+  getOtaUrl(): string;
+
+  // BLE MIDI signals
+  bleScanning: () => boolean;
+  bleConnected: () => boolean;
+  bleDeviceName: () => string;
+  bleDevices: () => { name: string; address: string }[];
+
+  // BLE MIDI methods
+  scanBleMidi(): void;
+  stopBleScan(): void;
+  connectBleMidi(address: string): void;
+  disconnectBleMidi(): void;
 }
 
 /**

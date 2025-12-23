@@ -104,6 +104,12 @@ export const fr: TranslationKeys = {
   'settings.networkSsid': 'SSID du réseau',
   'settings.password': 'Mot de passe',
   'settings.apName': 'Nom du PA',
+  'settings.selectNetwork': 'Sélectionner le réseau',
+  'settings.notConnected': 'Non connecté',
+  'settings.disconnect': 'Déconnecter',
+  'settings.connect': 'Connecter',
+  'settings.connecting': 'Connexion...',
+  'settings.accessVia': 'Accès via',
   'settings.system': 'Système',
   'settings.firmwareVersion': 'Version du firmware',
   'settings.freeMemory': 'Mémoire libre',
@@ -119,6 +125,12 @@ export const fr: TranslationKeys = {
   'settings.otaUpdate': 'Mise à jour OTA',
   'settings.otaUpdateDesc': 'Mettre à jour le firmware sans fil',
   'settings.openOtaPage': 'Ouvrir page de mise à jour',
+
+  // BLE MIDI
+  'settings.bleMidi': 'Bluetooth MIDI',
+  'settings.bleDevice': 'Appareil',
+  'settings.bleNotConnected': 'Aucun piano connecté',
+  'settings.selectDevice': 'Sélectionner un appareil...',
 
   // Calibration page
   'calibration.title': 'Calibration',
@@ -163,6 +175,7 @@ export const fr: TranslationKeys = {
   'common.unknown': 'Inconnu',
   'common.leds': 'LEDs',
   'common.ms': 'ms',
+  'common.or': 'ou',
   'common.confirmRestart': 'Êtes-vous sûr de vouloir redémarrer le contrôleur ?',
   'common.confirmFactoryReset': 'Cela effacera tous les paramètres et données. Êtes-vous sûr ?',
   'common.confirmFactoryResetFinal': 'Cette action est irréversible. Continuer ?',

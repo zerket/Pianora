@@ -104,6 +104,12 @@ export const de: TranslationKeys = {
   'settings.networkSsid': 'Netzwerk-SSID',
   'settings.password': 'Passwort',
   'settings.apName': 'AP-Name',
+  'settings.selectNetwork': 'Netzwerk auswählen',
+  'settings.notConnected': 'Nicht verbunden',
+  'settings.disconnect': 'Trennen',
+  'settings.connect': 'Verbinden',
+  'settings.connecting': 'Verbinde...',
+  'settings.accessVia': 'Zugriff über',
   'settings.system': 'System',
   'settings.firmwareVersion': 'Firmware-Version',
   'settings.freeMemory': 'Freier Speicher',
@@ -119,6 +125,12 @@ export const de: TranslationKeys = {
   'settings.otaUpdate': 'OTA-Update',
   'settings.otaUpdateDesc': 'Firmware drahtlos aktualisieren',
   'settings.openOtaPage': 'Update-Seite öffnen',
+
+  // BLE MIDI
+  'settings.bleMidi': 'Bluetooth MIDI',
+  'settings.bleDevice': 'Gerät',
+  'settings.bleNotConnected': 'Kein Klavier verbunden',
+  'settings.selectDevice': 'Gerät auswählen...',
 
   // Calibration page
   'calibration.title': 'Kalibrierung',
@@ -163,6 +175,7 @@ export const de: TranslationKeys = {
   'common.unknown': 'Unbekannt',
   'common.leds': 'LEDs',
   'common.ms': 'ms',
+  'common.or': 'oder',
   'common.confirmRestart': 'Sind Sie sicher, dass Sie den Controller neu starten möchten?',
   'common.confirmFactoryReset': 'Dies löscht alle Einstellungen und Daten. Sind Sie sicher?',
   'common.confirmFactoryResetFinal': 'Diese Aktion kann nicht rückgängig gemacht werden. Fortfahren?',

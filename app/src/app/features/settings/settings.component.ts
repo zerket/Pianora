@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -20,6 +20,162 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
         <div class="setting-row">
           <app-language-selector />
         </div>
+      </section>
+
+      <!-- WiFi Settings -->
+      <section class="settings-section card">
+        <h2>{{ i18n.t('settings.wifi') }}</h2>
+
+        <!-- Current Status -->
+        <div class="wifi-status">
+          @if (connectionService.staConnected()) {
+            <div class="status-connected">
+              <span class="status-icon">&#10003;</span>
+              <span>{{ connectionService.staSSID() }}</span>
+              <span class="status-ip">({{ connectionService.staIP() }})</span>
+            </div>
+            <button class="btn btn-small btn-secondary" (click)="disconnectWifi()">
+              {{ i18n.t('settings.disconnect') }}
+            </button>
+          } @else {
+            <div class="status-disconnected">
+              <span>{{ i18n.t('settings.notConnected') }}</span>
+            </div>
+          }
+        </div>
+        @if (connectionService.staConnected()) {
+          <div class="wifi-hint">
+            {{ i18n.t('settings.accessVia') }}: http://{{ connectionService.staIP() }}/ {{ i18n.t('common.or') }} http://pianora.local/
+          </div>
+        }
+
+        <!-- Network Selection -->
+        <div class="wifi-connect-form">
+          <div class="setting-row">
+            <span class="setting-label">{{ i18n.t('settings.networkSsid') }}</span>
+            <div class="network-select-row">
+              <select
+                [ngModel]="selectedNetwork()"
+                (ngModelChange)="onNetworkSelect($event)"
+                [disabled]="connectionService.wifiScanning()"
+              >
+                <option value="">{{ i18n.t('settings.selectNetwork') }}</option>
+                @for (network of connectionService.wifiNetworks(); track network.ssid) {
+                  <option [value]="network.ssid">
+                    {{ network.ssid }} ({{ network.rssi }} dBm){{ network.secure ? ' *' : '' }}
+                  </option>
+                }
+              </select>
+              <button
+                class="btn btn-small btn-secondary"
+                (click)="scanNetworks()"
+                [disabled]="connectionService.wifiScanning()"
+              >
+                @if (connectionService.wifiScanning()) {
+                  ...
+                } @else {
+                  &#8635;
+                }
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label">{{ i18n.t('settings.password') }}</span>
+            <input
+              type="password"
+              [ngModel]="wifiPassword()"
+              (ngModelChange)="wifiPassword.set($event)"
+              [placeholder]="i18n.t('settings.password')"
+            />
+          </div>
+
+          <div class="button-row">
+            <button
+              class="btn btn-primary"
+              (click)="connectToWifi()"
+              [disabled]="!selectedNetwork() || connectionService.wifiConnecting()"
+            >
+              @if (connectionService.wifiConnecting()) {
+                {{ i18n.t('settings.connecting') }}
+              } @else {
+                {{ i18n.t('settings.connect') }}
+              }
+            </button>
+          </div>
+
+          @if (wifiMessage()) {
+            <div class="wifi-message" [class.success]="wifiSuccess()" [class.error]="!wifiSuccess()">
+              {{ wifiMessage() }}
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- BLE MIDI Section -->
+      <section class="settings-section card">
+        <h2>{{ i18n.t('settings.bleMidi') }}</h2>
+
+        <!-- Current Status -->
+        <div class="ble-status">
+          @if (connectionService.bleConnected()) {
+            <div class="status-connected">
+              <span class="status-icon">&#9835;</span>
+              <span>{{ connectionService.bleDeviceName() }}</span>
+            </div>
+            <button class="btn btn-small btn-secondary" (click)="disconnectBle()">
+              {{ i18n.t('settings.disconnect') }}
+            </button>
+          } @else {
+            <div class="status-disconnected">
+              <span>{{ i18n.t('settings.bleNotConnected') }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Device Selection -->
+        @if (!connectionService.bleConnected()) {
+          <div class="ble-connect-form">
+            <div class="setting-row">
+              <span class="setting-label">{{ i18n.t('settings.bleDevice') }}</span>
+              <div class="network-select-row">
+                <select
+                  [ngModel]="selectedBleDevice()"
+                  (ngModelChange)="selectedBleDevice.set($event)"
+                  [disabled]="connectionService.bleScanning()"
+                >
+                  <option value="">{{ i18n.t('settings.selectDevice') }}</option>
+                  @for (device of connectionService.bleDevices(); track device.address) {
+                    <option [value]="device.address">
+                      {{ device.name }}
+                    </option>
+                  }
+                </select>
+                <button
+                  class="btn btn-small btn-secondary"
+                  (click)="scanBleDevices()"
+                  [disabled]="connectionService.bleScanning()"
+                >
+                  @if (connectionService.bleScanning()) {
+                    ...
+                  } @else {
+                    &#8635;
+                  }
+                </button>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button
+                class="btn btn-primary"
+                (click)="connectToBle()"
+                [disabled]="!selectedBleDevice() || connectionService.bleScanning()"
+              >
+                {{ i18n.t('settings.connect') }}
+              </button>
+            </div>
+          </div>
+        }
       </section>
 
       <!-- Calibration Section -->
@@ -85,54 +241,6 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
         </div>
       </section>
 
-      <!-- WiFi Settings -->
-      <section class="settings-section card">
-        <h2>{{ i18n.t('settings.wifi') }}</h2>
-
-        <div class="setting-row">
-          <span class="setting-label">{{ i18n.t('settings.wifiMode') }}</span>
-          <select [ngModel]="wifiMode()" (ngModelChange)="wifiMode.set($event)">
-            <option value="0">{{ i18n.t('settings.accessPoint') }}</option>
-            <option value="1">{{ i18n.t('settings.connectToNetwork') }}</option>
-            <option value="2">{{ i18n.t('settings.both') }}</option>
-          </select>
-        </div>
-
-        @if (wifiMode() === '1' || wifiMode() === '2') {
-          <div class="setting-row">
-            <span class="setting-label">{{ i18n.t('settings.networkSsid') }}</span>
-            <input
-              type="text"
-              [ngModel]="staSsid()"
-              (ngModelChange)="staSsid.set($event)"
-              placeholder="WiFi Name"
-            />
-          </div>
-
-          <div class="setting-row">
-            <span class="setting-label">{{ i18n.t('settings.password') }}</span>
-            <input
-              type="password"
-              [ngModel]="staPassword()"
-              (ngModelChange)="staPassword.set($event)"
-              placeholder="WiFi Password"
-            />
-          </div>
-        }
-
-        @if (wifiMode() === '0' || wifiMode() === '2') {
-          <div class="setting-row">
-            <span class="setting-label">{{ i18n.t('settings.apName') }}</span>
-            <input
-              type="text"
-              [ngModel]="apSsid()"
-              (ngModelChange)="apSsid.set($event)"
-              placeholder="Pianora"
-            />
-          </div>
-        }
-      </section>
-
       <!-- System -->
       <section class="settings-section card">
         <h2>{{ i18n.t('settings.system') }}</h2>
@@ -155,11 +263,13 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
           </div>
         </div>
 
-        <div class="button-row">
-          <button class="btn btn-secondary" (click)="checkForUpdates()">
-            {{ i18n.t('settings.checkUpdates') }}
-          </button>
-        </div>
+        @if (connectionService.hasOta()) {
+          <div class="button-row">
+            <a [href]="getOtaUrl()" target="_blank" class="btn btn-secondary">
+              {{ i18n.t('settings.otaUpdate') }}
+            </a>
+          </div>
+        }
 
         <div class="button-row">
           <button class="btn btn-secondary" (click)="restart()">
@@ -180,7 +290,7 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
         <div class="about-info">
           <p><strong>Pianora</strong></p>
           <p class="text-muted">{{ i18n.t('settings.appDescription') }}</p>
-          <p class="text-muted">{{ i18n.t('settings.version') }} 0.1.0</p>
+          <p class="text-muted">{{ i18n.t('settings.version') }} 0.5.0</p>
         </div>
       </section>
     </div>
@@ -254,6 +364,7 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
 
     select {
       min-width: 150px;
+      flex: 1;
     }
 
     input[type="text"],
@@ -264,9 +375,31 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
     .button-row {
       padding-top: var(--spacing-xs);
 
-      .btn {
+      .btn, a.btn {
         width: 100%;
+        display: block;
+        text-align: center;
+        text-decoration: none;
       }
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: white;
+
+      &:hover:not(:disabled) {
+        background-color: var(--color-primary-dark, #1565c0);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-small {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      min-width: 40px;
     }
 
     .btn-danger {
@@ -285,6 +418,92 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
         margin: var(--spacing-xs) 0;
       }
     }
+
+    /* WiFi Styles */
+    .wifi-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-sm);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+    }
+
+    .status-connected {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      color: var(--color-success, #4caf50);
+
+      .status-icon {
+        font-weight: bold;
+      }
+
+      .status-ip {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+      }
+    }
+
+    .status-disconnected {
+      color: var(--color-text-secondary);
+    }
+
+    .wifi-hint {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+    }
+
+    .wifi-connect-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      padding-top: var(--spacing-sm);
+    }
+
+    .network-select-row {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: center;
+    }
+
+    .wifi-message {
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      text-align: center;
+
+      &.success {
+        background: rgba(76, 175, 80, 0.1);
+        color: var(--color-success, #4caf50);
+      }
+
+      &.error {
+        background: rgba(244, 67, 54, 0.1);
+        color: var(--color-error, #f44336);
+      }
+    }
+
+    /* BLE MIDI Styles */
+    .ble-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-sm);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+    }
+
+    .ble-connect-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      padding-top: var(--spacing-sm);
+    }
   `]
 })
 export class SettingsComponent {
@@ -296,10 +515,29 @@ export class SettingsComponent {
   ledReversed = signal(false);
   defaultBrightness = signal(128);
 
-  wifiMode = signal('0');
-  staSsid = signal('');
-  staPassword = signal('');
-  apSsid = signal('Pianora');
+  // WiFi state
+  selectedNetwork = signal('');
+  wifiPassword = signal('');
+  wifiMessage = signal('');
+  wifiSuccess = signal(false);
+
+  // BLE MIDI state
+  selectedBleDevice = signal('');
+
+  constructor() {
+    // Watch for WiFi status changes
+    effect(() => {
+      const status = this.connectionService.lastWifiStatus();
+      if (status) {
+        this.wifiMessage.set(status.message);
+        this.wifiSuccess.set(status.success);
+        if (status.success && status.connected) {
+          this.selectedNetwork.set('');
+          this.wifiPassword.set('');
+        }
+      }
+    });
+  }
 
   formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
@@ -309,13 +547,54 @@ export class SettingsComponent {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  checkForUpdates(): void {
-    alert(this.i18n.t('common.updateNotImplemented'));
+  scanNetworks(): void {
+    this.wifiMessage.set('');
+    this.connectionService.scanWifi();
+  }
+
+  onNetworkSelect(ssid: string): void {
+    this.selectedNetwork.set(ssid);
+    this.wifiMessage.set('');
+  }
+
+  connectToWifi(): void {
+    const ssid = this.selectedNetwork();
+    const password = this.wifiPassword();
+    if (ssid) {
+      this.wifiMessage.set('');
+      this.connectionService.connectWifi(ssid, password);
+    }
+  }
+
+  disconnectWifi(): void {
+    this.connectionService.disconnectWifi();
+    this.wifiMessage.set('');
+  }
+
+  // BLE MIDI methods
+  scanBleDevices(): void {
+    this.connectionService.scanBleMidi();
+  }
+
+  connectToBle(): void {
+    const address = this.selectedBleDevice();
+    if (address) {
+      this.connectionService.connectBleMidi(address);
+      this.selectedBleDevice.set('');
+    }
+  }
+
+  disconnectBle(): void {
+    this.connectionService.disconnectBleMidi();
+  }
+
+  getOtaUrl(): string {
+    return this.connectionService.getOtaUrl();
   }
 
   restart(): void {
     if (confirm(this.i18n.t('common.confirmRestart'))) {
-      console.log('Restarting...');
+      this.connectionService.send('restart');
     }
   }
 

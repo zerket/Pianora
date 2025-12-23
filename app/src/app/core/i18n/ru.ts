@@ -58,6 +58,12 @@ export const ru: TranslationKeys = {
   'settings.otaUpdateDesc': 'Обновление прошивки по воздуху',
   'settings.openOtaPage': 'Открыть страницу обновления',
 
+  // BLE MIDI
+  'settings.bleMidi': 'Bluetooth MIDI',
+  'settings.bleDevice': 'Устройство',
+  'settings.bleNotConnected': 'Пианино не подключено',
+  'settings.selectDevice': 'Выберите устройство...',
+
   // Learn page
   'learn.title': 'Обучение',
   'learn.calibrationRequired': 'Требуется калибровка',
@@ -109,6 +115,12 @@ export const ru: TranslationKeys = {
   'settings.networkSsid': 'Имя сети',
   'settings.password': 'Пароль',
   'settings.apName': 'Имя точки доступа',
+  'settings.selectNetwork': 'Выберите сеть',
+  'settings.notConnected': 'Не подключено',
+  'settings.disconnect': 'Отключить',
+  'settings.connect': 'Подключить',
+  'settings.connecting': 'Подключение...',
+  'settings.accessVia': 'Доступ',
   'settings.system': 'Система',
   'settings.firmwareVersion': 'Версия прошивки',
   'settings.freeMemory': 'Свободная память',
@@ -163,6 +175,7 @@ export const ru: TranslationKeys = {
   'common.unknown': 'Неизвестно',
   'common.leds': 'LED',
   'common.ms': 'мс',
+  'common.or': 'или',
   'common.confirmRestart': 'Вы уверены, что хотите перезагрузить контроллер?',
   'common.confirmFactoryReset': 'Это удалит все настройки и данные. Вы уверены?',
   'common.confirmFactoryResetFinal': 'Это действие нельзя отменить. Продолжить?',
