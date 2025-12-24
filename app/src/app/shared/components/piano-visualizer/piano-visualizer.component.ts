@@ -142,6 +142,7 @@ export class PianoVisualizerComponent implements OnDestroy {
     effect(() => {
       const lastNote = this.connectionService.lastMidiNote();
       if (lastNote && lastNote.on) {
+        console.log('[Visualizer] Adding rising note:', lastNote.note, 'vel:', lastNote.velocity);
         this.addRisingNote(lastNote.note, lastNote.velocity);
       }
     });

@@ -104,9 +104,7 @@ export class ConnectionService {
       return;
     }
 
-    const wsUrl = environment.production
-       ? `ws://${window.location.hostname}:81/`
-      : environment.wsUrl;
+    const wsUrl = environment.wsUrl || `ws://${window.location.hostname}:81/`;
 
     console.log('Connecting to WebSocket:', wsUrl);
 
@@ -215,10 +213,7 @@ export class ConnectionService {
 
   // OTA Update
   getOtaUrl(): string {
-    const baseUrl = environment.production
-      ? `http://${window.location.host}`
-      : environment.wsUrl.replace('ws://', 'http://').replace('/ws', '');
-    return `${baseUrl}/update`;
+    return `http://${window.location.host}/update`;
   }
 
   startCalibration(type: 'quick' | 'detailed' = 'quick'): void {
@@ -300,6 +295,10 @@ export class ConnectionService {
           break;
 
         case 'midi_note':
+          // Debug: log received MIDI note
+          console.log('[MIDI] Received:', message.on ? 'NOTE ON' : 'NOTE OFF',
+            'note=' + message.note, 'vel=' + message.velocity);
+
           const midiNote: MidiNote = {
             note: message.note,
             velocity: message.velocity,
@@ -316,6 +315,9 @@ export class ConnectionService {
             notes.delete(midiNote.note);
           }
           this._activeNotes.set(notes);
+
+          // Debug: log active notes count
+          console.log('[MIDI] Active notes:', notes.size);
           break;
 
         case 'calibration_step':
