@@ -130,6 +130,7 @@ export const es: TranslationKeys = {
   'settings.bleMidi': 'Bluetooth MIDI',
   'settings.bleDevice': 'Dispositivo',
   'settings.bleNotConnected': 'Piano no conectado',
+  'settings.bleWifiWarning': 'Para conectar vía Bluetooth, desconecte WiFi y conéctese al punto de acceso del controlador (Pianora)',
   'settings.selectDevice': 'Seleccionar dispositivo...',
 
   // Calibration page

@@ -194,31 +194,31 @@ void midiNotifyCallback(NimBLERemoteCharacteristic* pChar, uint8_t* pData, size_
     }
     Serial.println();
 
-    if (length < 3) return;
+    if (length < 5) return; // Minimum: header + timestamp + status + data1 + data2
 
     // BLE MIDI packet format: [header, timestamp, status, data1, data2, ...]
-    // Skip header and timestamp bytes
-    size_t i = 2;
-    while (i < length) {
-        // Check for timestamp byte (high bit set)
-        if (pData[i] & 0x80) {
+    // Header: 1xxxxxxx (high bit set)
+    // Timestamp: 1xxxxxxx (high bit set)
+    // Status: 1001nnnn (Note On 0x90) or 1000nnnn (Note Off 0x80)
+    // Data bytes: 0xxxxxxx (high bit clear, 0-127)
+
+    size_t i = 2; // Start after header and first timestamp
+
+    while (i + 2 < length) {
+        uint8_t byte = pData[i];
+
+        // Check for embedded timestamp (0x80-0xBF range typically)
+        // Timestamps have high bit set but are NOT status bytes
+        // Status bytes are 0x80-0x9F for Note Off/On
+        if ((byte & 0x80) && !(byte == 0x80 || byte == 0x90 ||
+            (byte >= 0x80 && byte <= 0x8F) || (byte >= 0x90 && byte <= 0x9F))) {
             i++;
             continue;
         }
 
-        uint8_t status = pData[i];
-        if (status < 0x80) {
-            // Not a status byte, skip
-            i++;
-            continue;
-        }
+        uint8_t type = byte & 0xF0;
 
-        uint8_t channel = status & 0x0F;
-        uint8_t type = status & 0xF0;
-
-        if (i + 2 >= length) break;
-
-        if (type == 0x90) {
+        if (type == 0x90 && i + 2 < length) {
             // Note On
             uint8_t note = pData[i + 1] & 0x7F;
             uint8_t velocity = pData[i + 2] & 0x7F;
@@ -226,19 +226,17 @@ void midiNotifyCallback(NimBLERemoteCharacteristic* pChar, uint8_t* pData, size_
                 Serial.printf("[BLE MIDI] Note ON: %d vel: %d\r\n", note, velocity);
                 broadcastMidiNote(note, velocity, true);
             } else {
-                // Velocity 0 = Note Off
-                Serial.printf("[BLE MIDI] Note OFF: %d\r\n", note);
+                Serial.printf("[BLE MIDI] Note OFF: %d (vel 0)\r\n", note);
                 broadcastMidiNote(note, 0, false);
             }
             i += 3;
-        } else if (type == 0x80) {
+        } else if (type == 0x80 && i + 2 < length) {
             // Note Off
             uint8_t note = pData[i + 1] & 0x7F;
             Serial.printf("[BLE MIDI] Note OFF: %d\r\n", note);
             broadcastMidiNote(note, 0, false);
             i += 3;
         } else {
-            // Other MIDI message, skip
             i++;
         }
     }
@@ -408,41 +406,51 @@ void connectToBleDevice(NimBLEAddress address) {
     // Clear characteristic pointer
     pMidiCharacteristic = nullptr;
 
-    // Stop any ongoing scan before connecting
-    if (bleScanning) {
+    // Stop any ongoing scan before connecting - this is CRITICAL
+    if (bleScanning || pBLEScan->isScanning()) {
         Serial.println("[BLE] Stopping scan before connect...");
         pBLEScan->stop();
         bleScanning = false;
         bleScanStartTime = 0;
+        delay(500);
+        Serial.println("[BLE] Scan stopped, waiting for BLE stack to settle...");
     }
 
     // Temporarily reduce WiFi power to minimize interference
     Serial.println("[BLE] Reducing WiFi interference...");
     WiFi.setTxPower(WIFI_POWER_MINUS_1dBm);
-    delay(100);
+    delay(200);
 
-    // Reuse existing client if available, otherwise create new one
+    // Reuse existing client or create new one
     if (pBLEClient == nullptr) {
         Serial.println("[BLE] Creating new BLE client...");
         pBLEClient = NimBLEDevice::createClient();
+        if (pBLEClient == nullptr) {
+            Serial.println("[BLE] ERROR: Failed to create BLE client!");
+            WiFi.setTxPower(WIFI_POWER_19_5dBm);
+            broadcastStatus();
+            return;
+        }
         pBLEClient->setClientCallbacks(&clientCallbacks);
     } else {
         Serial.println("[BLE] Reusing existing BLE client...");
-        // If connected to something else, disconnect first
         if (pBLEClient->isConnected()) {
             Serial.println("[BLE] Disconnecting from previous device...");
             pBLEClient->disconnect();
+            delay(300);
         }
     }
 
-    // Set connection parameters - use wider interval range for better compatibility
-    // min interval, max interval, latency, timeout (in 1.25ms units for intervals, 10ms for timeout)
-    pBLEClient->setConnectionParams(8, 40, 0, 600); // 10-50ms interval, 6s supervision timeout
-    pBLEClient->setConnectTimeout(15); // 15 seconds connection timeout
+    // Set connection parameters for Kawai piano
+    // Use longer intervals and timeout for better compatibility
+    pBLEClient->setConnectionParams(12, 24, 0, 400); // 15-30ms interval, 4s timeout
+    pBLEClient->setConnectTimeout(10); // 10 seconds
 
-    Serial.println("[BLE] Connection params: interval=10-50ms, timeout=15sec");
+    Serial.println("[BLE] Connection params: interval=15-30ms, timeout=10sec");
+    Serial.printf("[BLE] Free heap before connect: %lu\r\n", ESP.getFreeHeap());
     Serial.printf("[BLE] Attempting connection at %lu ms...\r\n", millis());
 
+    // Connect using the address with its type already set
     bool connected = pBLEClient->connect(address);
 
     Serial.printf("[BLE] Connection attempt finished at %lu ms\r\n", millis());

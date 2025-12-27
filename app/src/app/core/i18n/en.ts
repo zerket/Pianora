@@ -62,6 +62,7 @@ export const en: TranslationKeys = {
   'settings.bleMidi': 'Bluetooth MIDI',
   'settings.bleDevice': 'Device',
   'settings.bleNotConnected': 'No piano connected',
+  'settings.bleWifiWarning': 'To connect via Bluetooth, disconnect from WiFi and connect to the controller\'s access point (Pianora)',
   'settings.selectDevice': 'Select device...',
 
   // Learn page

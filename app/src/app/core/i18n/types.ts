@@ -145,6 +145,7 @@ export interface TranslationKeys {
   'settings.bleMidi': string;
   'settings.bleDevice': string;
   'settings.bleNotConnected': string;
+  'settings.bleWifiWarning': string;
   'settings.selectDevice': string;
 
   // Calibration page

@@ -116,6 +116,14 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
       <section class="settings-section card">
         <h2>{{ i18n.t('settings.bleMidi') }}</h2>
 
+        <!-- Warning about WiFi -->
+        @if (connectionService.staConnected()) {
+          <div class="ble-warning">
+            <span class="warning-icon">&#9888;</span>
+            <span>{{ i18n.t('settings.bleWifiWarning') }}</span>
+          </div>
+        }
+
         <!-- Current Status -->
         <div class="ble-status">
           @if (connectionService.bleConnected()) {
@@ -503,6 +511,24 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
       flex-direction: column;
       gap: var(--spacing-md);
       padding-top: var(--spacing-sm);
+    }
+
+    .ble-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm);
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: var(--radius-sm);
+      color: #f57c00;
+      font-size: 0.85rem;
+      line-height: 1.4;
+
+      .warning-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
     }
   `]
 })

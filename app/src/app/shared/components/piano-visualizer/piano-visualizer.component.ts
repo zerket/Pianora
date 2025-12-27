@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 
@@ -6,7 +6,7 @@ interface RisingNote {
   id: number;
   note: number;
   velocity: number;
-  x: number;
+  leftPercent: number;
   startTime: number;
 }
 
@@ -16,20 +16,7 @@ interface RisingNote {
   imports: [CommonModule],
   template: `
     <div class="visualizer-container" #container>
-      <!-- Rising Notes -->
-      <div class="rising-notes">
-        @for (note of risingNotes(); track note.id) {
-          <div
-            class="rising-note"
-            [style.left.px]="note.x"
-            [style.backgroundColor]="getNoteColor(note.note)"
-            [style.opacity]="note.velocity / 127"
-            [style.animationDuration.s]="animationDuration()"
-          ></div>
-        }
-      </div>
-
-      <!-- Piano Keyboard -->
+      <!-- Piano Keyboard (top) -->
       <div class="keyboard">
         @for (key of keys; track key.note) {
           <div
@@ -41,6 +28,22 @@ interface RisingNote {
           ></div>
         }
       </div>
+
+      <!-- Separator line -->
+      <div class="separator"></div>
+
+      <!-- Falling Notes -->
+      <div class="falling-notes">
+        @for (note of risingNotes(); track note.id) {
+          <div
+            class="falling-note"
+            [style.left.%]="note.leftPercent"
+            [style.backgroundColor]="getNoteColor(note.note)"
+            [style.opacity]="0.7 + (note.velocity / 127) * 0.3"
+            [style.animationDuration.s]="animationDuration()"
+          ></div>
+        }
+      </div>
     </div>
   `,
   styles: [`
@@ -48,79 +51,96 @@ interface RisingNote {
       position: relative;
       width: 100%;
       height: 300px;
-      background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 100%);
+      background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0a 100%);
       border-radius: var(--radius-lg);
       overflow: hidden;
     }
 
-    .rising-notes {
+    .keyboard {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      bottom: 80px;
-      pointer-events: none;
-    }
-
-    .rising-note {
-      position: absolute;
-      bottom: 0;
-      width: 12px;
-      height: 40px;
-      border-radius: 6px 6px 0 0;
-      animation: rise linear forwards;
-      box-shadow: 0 0 10px currentColor;
-    }
-
-    @keyframes rise {
-      from {
-        transform: translateY(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateY(-220px);
-        opacity: 0;
-      }
-    }
-
-    .keyboard {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 80px;
-      background: #1a1a1a;
+      height: 70px;
+      background: #2a2a2a;
     }
 
     .key {
       position: absolute;
-      bottom: 0;
+      top: 0;
       transition: background-color 0.05s;
     }
 
     .key:not(.black) {
       width: 2.38%;
       height: 100%;
-      background: linear-gradient(180deg, #f0f0f0 0%, #d0d0d0 100%);
-      border: 1px solid #999;
+      background: linear-gradient(180deg, #e8e8e8 0%, #f8f8f8 100%);
+      border: 1px solid #888;
+      border-top: none;
       border-radius: 0 0 4px 4px;
       z-index: 1;
     }
 
     .key:not(.black).active {
-      background: linear-gradient(180deg, #4fc3f7 0%, #29b6f6 100%);
+      background: linear-gradient(180deg, #29b6f6 0%, #4fc3f7 100%);
     }
 
     .key.black {
       width: 1.4%;
-      height: 60%;
-      background: linear-gradient(180deg, #333 0%, #111 100%);
+      height: 55%;
+      background: linear-gradient(180deg, #111 0%, #333 100%);
       border-radius: 0 0 3px 3px;
       z-index: 2;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
     }
 
     .key.black.active {
-      background: linear-gradient(180deg, #e040fb 0%, #9c27b0 100%);
+      background: linear-gradient(180deg, #9c27b0 0%, #e040fb 100%);
+    }
+
+    .separator {
+      position: absolute;
+      top: 70px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(100, 100, 150, 0.5) 20%,
+        rgba(100, 100, 150, 0.8) 50%,
+        rgba(100, 100, 150, 0.5) 80%,
+        transparent 100%);
+      z-index: 10;
+    }
+
+    .falling-notes {
+      position: absolute;
+      top: 73px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    .falling-note {
+      position: absolute;
+      top: 0;
+      width: 12px;
+      height: 40px;
+      border-radius: 0 0 6px 6px;
+      animation: fall linear forwards;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    @keyframes fall {
+      from {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(220px);
+        opacity: 0;
+      }
     }
   `]
 })
@@ -131,6 +151,7 @@ export class PianoVisualizerComponent implements OnDestroy {
   animationDuration = signal(2);
   private noteIdCounter = 0;
   private cleanupInterval: any;
+  private lastProcessedTimestamp = 0;
 
   // Piano keys (88 keys, A0 to C8)
   keys: { note: number; isBlack: boolean; position: number }[] = [];
@@ -138,23 +159,23 @@ export class PianoVisualizerComponent implements OnDestroy {
   constructor() {
     this.generateKeys();
 
-    // Watch for new MIDI notes
-    effect(() => {
+    // Cleanup old notes periodically and check for new notes
+    this.cleanupInterval = setInterval(() => {
+      // Check for new MIDI notes
       const lastNote = this.connectionService.lastMidiNote();
-      if (lastNote && lastNote.on) {
+      if (lastNote && lastNote.on && lastNote.timestamp > this.lastProcessedTimestamp) {
         console.log('[Visualizer] Adding rising note:', lastNote.note, 'vel:', lastNote.velocity);
+        this.lastProcessedTimestamp = lastNote.timestamp;
         this.addRisingNote(lastNote.note, lastNote.velocity);
       }
-    });
 
-    // Cleanup old notes periodically
-    this.cleanupInterval = setInterval(() => {
+      // Cleanup old notes
       const now = Date.now();
       const duration = this.animationDuration() * 1000;
       this.risingNotes.update(notes =>
         notes.filter(n => now - n.startTime < duration)
       );
-    }, 500);
+    }, 50); // Check every 50ms for responsive visualization
   }
 
   ngOnDestroy(): void {
@@ -204,19 +225,20 @@ export class PianoVisualizerComponent implements OnDestroy {
 
   private addRisingNote(note: number, velocity: number): void {
     const key = this.keys.find(k => k.note === note);
-    if (!key) return;
-
-    const containerWidth = 100; // percentage
-    const x = (key.position / 100) * window.innerWidth * 0.9; // Approximate
+    if (!key) {
+      console.log('[Visualizer] Key not found for note:', note);
+      return;
+    }
 
     const newNote: RisingNote = {
       id: this.noteIdCounter++,
       note,
       velocity,
-      x: key.position * 3.5, // Scale to container
+      leftPercent: key.position, // Use same percentage as keyboard keys
       startTime: Date.now()
     };
 
+    console.log('[Visualizer] Created note at', key.position, '%');
     this.risingNotes.update(notes => [...notes, newNote]);
   }
 

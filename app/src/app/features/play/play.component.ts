@@ -21,6 +21,9 @@ interface ModeOption {
     <div class="play-page">
       <h1>{{ i18n.t('play.title') }}</h1>
 
+      <!-- Piano Visualizer - always visible -->
+      <app-piano-visualizer></app-piano-visualizer>
+
       <!-- Mode Selection -->
       <section class="modes-section">
         <h2>{{ i18n.t('play.selectMode') }}</h2>
@@ -38,11 +41,6 @@ interface ModeOption {
           }
         </div>
       </section>
-
-      <!-- Piano Visualizer -->
-      @if (currentMode() === LedMode.VISUALIZER) {
-        <app-piano-visualizer></app-piano-visualizer>
-      }
 
       <!-- Quick Settings -->
       <section class="settings-section card">

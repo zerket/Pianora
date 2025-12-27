@@ -1,51 +1,4 @@
-
-mode:DIO, clock div:1
-load:0x3fce3808,len:0x4bc
-load:0x403c9700,len:0xbd8
-load:0x403cc700,len:0x2a0c
-entry 0x403c98d0
-
-
-=====================================
-   Pianora Firmware v0.4.0
-   WiFi + BLE MIDI Client
-=====================================
-CPU: 240 MHz
-Heap: 313676 bytes
-
-[STEP] LittleFS init... OK
-[FS] Files:
-  chunk-37PQLLUT.js (4482 bytes)
-  chunk-5XCITOOP.js (5913 bytes)
-  chunk-AFVBXFJ3.js (11395 bytes)
-  chunk-CMMMPT67.js (420 bytes)
-  chunk-EQ24THKI.js (183576 bytes)
-  chunk-FA77DWVB.js (83745 bytes)
-  chunk-FUGOLN2I.js (9204 bytes)
-  chunk-N7OFQ36G.js (10985 bytes)
-  chunk-PH25IKVI.js (29831 bytes)
-  chunk-ZMZZ332Q.js (17400 bytes)
-  index.html (11319 bytes)
-  main-4YT2TSZP.js (80598 bytes)
-  manifest.webmanifest (1422 bytes)
-  ngsw-worker.js (71130 bytes)
-  ngsw.json (2446 bytes)
-  polyfills-B6TNHZQ6.js (34579 bytes)
-  safety-worker.js (785 bytes)
-  styles-2A4E42UL.css (4822 bytes)
-  worker-basic.min.js (785 bytes)
-[STEP] WiFi init...
-[WiFi] Loaded SSID: RT-GPON-F060_EXT
-[WiFi] Connecting to: RT-GPON-F060_EXT
-.....
-[WiFi] Connected! IP: 192.168.0.81
-[WiFi] AP IP: 192.168.4.1
-[mDNS] Started: http://pianora.local/
-[STEP] BLE init...
-[BLE] Initializing...
-[BLE] Ready
-[STEP] DNS Server init... OK
-[STEP] WebServer init... OK (port 80)
+80)
 [OTA] ElegantOTA ready at /update
 [STEP] WebSocket init... OK (port 81)
 
@@ -53,39 +6,45 @@ Heap: 313676 bytes
    Ready!
    AP: Pianora / pianora123
    AP IP: 192.168.4.1
-   STA IP: 192.168.0.81
    mDNS: http://pianora.local/
-   OTA:  http://192.168.4.1/update
 =====================================
 
-[ 14658][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[HTTP] Request: /settings
-[ 14669][E][vfs_api.cpp:105] open(): /littlefs/settings does not exist, no permits for creation
-[ 14770][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[HTTP] Request: /favicon.ico
-[ 14782][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
-[ 14883][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[ 15102][E][WebServer.cpp:638] _handleRequest(): request handler[HTTP] Request: /chunk-FA77DWVB.js
+[ 24520][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[ 25145][E][WebServer.cpp:638] _handleRequest(): request handler[HTTP] Request: /
  not found
-[HTTP] Request: /chunk-EQ24THKI.js
-[ 15578][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[HTTP] Request: /chunk-N7OFQ36G.js
-[ 15677][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /
+[ 25274][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-JFAJHLBE.js
+[ 25450][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-UATXU7M2.js
+[ 25964][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-XUBXTKLF.js
+[ 26266][E][WebServer.cpp:638] _handleRequest(): request handler not found
 [HTTP] Request: /polyfills-B6TNHZQ6.js
-[ 15784][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[HTTP] Request: /main-4YT2TSZP.js
-[ 16025][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[ 26489][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /main-XCND7EBG.js
+[ 26895][E][WebServer.cpp:638] _handleRequest(): request handler not found
 [HTTP] Request: /styles-2A4E42UL.css
-[ 16074][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[HTTP] Request: /chunk-ZMZZ332Q.js
-[ 16189][E][WebServer.cpp:638] _handleRequest(): request handler not found
-[HTTP] Request: /chunk-PH25IKVI.js
-[ 16320][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[ 26955][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-XNTDGHYD.js
+[ 27097][E][WebServer.cpp:638] _handleRequest(): request handler not found
 [HTTP] Request: /favicon.ico
-[ 16330][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
-[WS] Client 0 connected from 192.168.0.48
+[ 27108][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
+[ 27201][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-CMMMPT67.js
+[ 27278][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-GN7G64XH.js
+[WS] Client 0 connected from 192.168.4.2
+[ 27579][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /favicon.ico
+[ 27590][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
 [WS] Client 0: {"type":"get_status","payload":{}}
-[INFO] Uptime: 30 sec, Heap: 191356, WS: 1, WiFi: 192.168.0.81
+[ 29537][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /chunk-2GO7DI67.js
+[ 29729][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /favicon.ico
+[ 29740][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
+[INFO] Uptime: 30 sec, Heap: 189916, WS: 1, WiFi: AP only
 [WS] Client 0: {"type":"scan_ble_midi","payload":{}}
 [WS] Starting BLE MIDI scan...
 [BLE] ====== Starting BLE MIDI scan ======
@@ -93,83 +52,118 @@ Heap: 313676 bytes
 [BLE] Calling pBLEScan->start(0, false, true) for infinite scan...
 [BLE] Scan start returned: true
 [BLE] Infinite scan started, will stop manually after 20s...
-[BLE] Device: <no name> (36:07:f6:16:1b:cb) RSSI:-72
-[BLE] Device: KDP120 (db:1c:41:54:fa:3a) RSSI:-60
+[BLE] Device: LEDDMX-00-0142 (c0:00:00:00:01:42) RSSI:-76
+[BLE] Device: KDP120 (db:1c:41:54:fa:3a) RSSI:-71
 [BLE] >>> MIDI SERVICE FOUND! db:1c:41:54:fa:3a
 [BLE] Found device: KDP120 (db:1c:41:54:fa:3a) [MIDI]
-[BLE] Device: <no name> (25:7b:55:d4:01:18) RSSI:-8
-[BLE] Device: TY (c4:82:e1:1b:ba:87) RSSI:-75
-[BLE] Device: <no name> (3f:23:8a:e0:7e:14) RSSI:-81
-[BLE] Device: <no name> (8c:ea:48:3e:37:43) RSSI:-79
-[INFO] Uptime: 60 sec, Heap: 190524, WS: 1, WiFi: 192.168.0.81
+[BLE] Device: <no name> (75:dc:18:9b:5c:0e) RSSI:-36
+[BLE] Device: <no name> (8c:ea:48:3e:37:43) RSSI:-75
+[BLE] Device: <no name> (02:a6:e4:44:e4:35) RSSI:-77
+[BLE] Device: TY (c4:82:e1:1b:ba:87) RSSI:-68
+[BLE] Device: <no name> (f8:12:75:a9:f9:16) RSSI:-79
 [BLE] Scan timeout reached, stopping...
 [BLE] ====== Scan ended (manual) ======
 [BLE] MIDI devices found: 1
-[INFO] Uptime: 90 sec, Heap: 190436, WS: 1, WiFi: 192.168.0.81
 [WS] Client 0: {"type":"connect_ble_midi","payload":{"address":"db:1c:41:54:fa:3a"}}
 [WS] Connecting to BLE device: db:1c:41:54:fa:3a
 [BLE] Found device in list, type: 1
 [BLE] ====== Starting BLE connection ======
 [BLE] Target address: db:1c:41:54:fa:3a
 [BLE] Address type: 1 (0=public, 1=random, 2=public_id, 3=random_id)
+[BLE] Reducing WiFi interference...
 [BLE] Creating new BLE client...
-[BLE] Connection params: interval=7.5-15ms, timeout=10sec
-[BLE] Attempting connection...
+[BLE] Connection params: interval=15-30ms, timeout=10sec
+[BLE] Free heap before connect: 190516
+[BLE] Attempting connection at 56545 ms...
+[BLE] ====== Disconnected ======
+[BLE] Re[BLE] Connection attempt finished at 56746 ms
 [BLE] *** Connection FAILED ***
 [BLE] Possible causes:
 [BLE]   - Piano already connected to another device (phone/tablet)
 [BLE]   - Piano Bluetooth is off or in sleep mode
-[BLE]   - Out of range or weak signal
-[BLE]   - Try: power cycle piano, disable BT on other devices
-[INFO] Uptime: 120 sec, Heap: 190360, WS: 1, WiFi: 192.168.0.81
+[BLE]   - WiFi/BLE coexistence issue
+[BLE]   - Try: power cycle piano, disable BT on phone
+[INFO] Uptime: 60 sec, Heap: 188796, WS: 1, WiFi: AP only
+[ 69863][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /favicon.ico
+[ 69873][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
+[ 73418][E][WebServer.cpp:638] _handleRequest(): request handler not found
+[HTTP] Request: /favicon.ico
+[ 73429][E][vfs_api.cpp:105] open(): /littlefs/favicon.ico does not exist, no permits for creation
 [WS] Client 0: {"type":"connect_ble_midi","payload":{"address":"db:1c:41:54:fa:3a"}}
 [WS] Connecting to BLE device: db:1c:41:54:fa:3a
 [BLE] Found device in list, type: 1
 [BLE] ====== Starting BLE connection ======
 [BLE] Target address: db:1c:41:54:fa:3a
 [BLE] Address type: 1 (0=public, 1=random, 2=public_id, 3=random_id)
+[BLE] Reducing WiFi interference...
 [BLE] Reusing existing BLE client...
-[BLE] Connection params: interval=7.5-15ms, timeout=10sec
-[BLE] Attempting connection...
+[BLE] Connection params: interval=15-30ms, timeout=10sec
+[BLE] Free heap before connect: 190556
+[BLE] Attempting connection at 83096 ms...
+[BLE] Connection attempt finished at 83108 ms
 [BLE] *** Connection FAILED ***
 [BLE] Possible causes:
 [BLE]   - Piano already connected to another device (phone/tablet)
 [BLE]   - Piano Bluetooth is off or in sleep mode
-[BLE]   - Out of range or weak signal
-[BLE]   - Try: power cycle piano, disable BT on other devices
-[INFO] Uptime: 150 sec, Heap: 193048, WS: 1, WiFi: 192.168.0.81
+[BLE]   - WiFi/BLE coexistence issue
+[BLE]   - Try: power cycle piano, disable BT on phone
+[INFO] Uptime: 90 sec, Heap: 191012, WS: 1, WiFi: AP only
 [WS] Client 0: {"type":"connect_ble_midi","payload":{"address":"db:1c:41:54:fa:3a"}}
 [WS] Connecting to BLE device: db:1c:41:54:fa:3a
 [BLE] Found device in list, type: 1
 [BLE] ====== Starting BLE connection ======
 [BLE] Target address: db:1c:41:54:fa:3a
 [BLE] Address type: 1 (0=public, 1=random, 2=public_id, 3=random_id)
+[BLE] Reducing WiFi interference...
 [BLE] Reusing existing BLE client...
-[BLE] Connection params: interval=7.5-15ms, timeout=10sec
-[BLE] Attempting connection...
+[BLE] Connection params: interval=15-30ms, timeout=10sec
+[BLE] Free heap before connect: 190348
+[BLE] Attempting connection at 100260 ms...
+[BLE] Connection attempt finished at 100272 ms
 [BLE] *** Connection FAILED ***
 [BLE] Possible causes:
 [BLE]   - Piano already connected to another device (phone/tablet)
 [BLE]   - Piano Bluetooth is off or in sleep mode
-[BLE]   - Out of range or weak signal
-[BLE]   - Try: power cycle piano, disable BT on other devices
-[INFO] Uptime: 180 sec, Heap: 193048, WS: 1, WiFi: 192.168.0.81
-[INFO] Uptime: 210 sec, Heap: 193048, WS: 1, WiFi: 192.168.0.81
+[BLE]   - WiFi/BLE coexistence issue
+[BLE]   - Try: power cycle piano, disable BT on phone
+[INFO] Uptime: 120 sec, Heap: 191012, WS: 1, WiFi: AP only
+[WS] Client 0: {"type":"scan_ble_midi","payload":{}}
+[WS] Starting BLE MIDI scan...
+[BLE] ====== Starting BLE MIDI scan ======
+[BLE] Scan params: interval=160, window=40, duration=20s
+[BLE] Calling pBLEScan->start(0, false, true) for infinite scan...
+[BLE] Scan start returned: true
+[BLE] Infinite scan started, will stop manually after 20s...
+[BLE] Device: KDP120 (db:1c:41:54:fa:3a) RSSI:-79
+[BLE] >>> MIDI SERVICE FOUND! db:1c:41:54:fa:3a
+[BLE] Found device: KDP120 (db:1c:41:54:fa:3a) [MIDI]
+[BLE] Device: TY (c4:82:e1:1b:ba:87) RSSI:-70
+[BLE] Device: LEDDMX-00-0142 (c0:00:00:00:01:42) RSSI:-66
+[BLE] Device: <no name> (75:dc:18:9b:5c:0e) RSSI:-33
+[BLE] Device: <no name> (02:a6:e4:44:e4:35) RSSI:-77
+[BLE] Device: <no name> (f8:12:75:a9:f9:16) RSSI:-77
+[BLE] Device: <no name> (8c:ea:48:3e:37:43) RSSI:-76
+[BLE] Device: Mi Smart Band 4 (d3:d4:e6:9b:55:39) RSSI:-89
+[BLE] Scan timeout reached, stopping...
+[BLE] ====== Scan ended (manual) ======
+[BLE] MIDI devices found: 1
+[INFO] Uptime: 150 sec, Heap: 193228, WS: 1, WiFi: AP only
 [WS] Client 0: {"type":"connect_ble_midi","payload":{"address":"db:1c:41:54:fa:3a"}}
 [WS] Connecting to BLE device: db:1c:41:54:fa:3a
 [BLE] Found device in list, type: 1
 [BLE] ====== Starting BLE connection ======
 [BLE] Target address: db:1c:41:54:fa:3a
 [BLE] Address type: 1 (0=public, 1=random, 2=public_id, 3=random_id)
+[BLE] Reducing WiFi interference...
 [BLE] Reusing existing BLE client...
-[BLE] Connection params: interval=7.5-15ms, timeout=10sec
-[BLE] Attempting connection...
+[BLE] Connection params: interval=15-30ms, timeout=10sec
+[BLE] Free heap before connect: 192788
+[BLE] Attempting connection at 152540 ms...
+[BLE] Connection attempt finished at 152552 ms
 [BLE] *** Connection FAILED ***
 [BLE] Possible causes:
 [BLE]   - Piano already connected to another device (phone/tablet)
 [BLE]   - Piano Bluetooth is off or in sleep mode
-[BLE]   - Out of range or weak signal
-[BLE]   - Try: power cycle piano, disable BT on other devices
-[INFO] Uptime: 240 sec, Heap: 193048, WS: 1, WiFi: 192.168.0.81
-[INFO] Uptime: 270 sec, Heap: 193048, WS: 1, WiFi: 192.168.0.81
-[INFO] Uptime: 300 sec, Heap: 193048, WS: 1, WiFi: 192.168.0.81
+[BLE]   - WiFi/BLE coexistence issue
+[BLE]   - Try: power cycle piano, disable BT on phone
