@@ -14,14 +14,6 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
     <div class="settings-page">
       <h1>{{ i18n.t('settings.title') }}</h1>
 
-      <!-- Language Section -->
-      <section class="settings-section card">
-        <h2>{{ i18n.t('settings.language') }}</h2>
-        <div class="setting-row">
-          <app-language-selector />
-        </div>
-      </section>
-
       <!-- WiFi Settings -->
       <section class="settings-section card">
         <h2>{{ i18n.t('settings.wifi') }}</h2>
@@ -301,6 +293,14 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
           <p class="text-muted">{{ i18n.t('settings.version') }} 0.5.0</p>
         </div>
       </section>
+
+      <!-- Language Section -->
+      <section class="settings-section card">
+        <h2>{{ i18n.t('settings.language') }}</h2>
+        <div class="setting-row">
+          <app-language-selector />
+        </div>
+      </section>
     </div>
   `,
   styles: [`
@@ -561,6 +561,17 @@ export class SettingsComponent {
           this.selectedNetwork.set('');
           this.wifiPassword.set('');
         }
+      }
+    });
+
+    // Auto-select single BLE device after scan
+    effect(() => {
+      const devices = this.connectionService.bleDevices();
+      const isScanning = this.connectionService.bleScanning();
+
+      // If scan just finished and exactly one device was found, auto-select it
+      if (!isScanning && devices.length === 1 && !this.selectedBleDevice()) {
+        this.selectedBleDevice.set(devices[0].address);
       }
     });
   }

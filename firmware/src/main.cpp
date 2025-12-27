@@ -51,6 +51,7 @@ NimBLEClient* pBLEClient = nullptr;
 NimBLERemoteCharacteristic* pMidiCharacteristic = nullptr;
 bool bleScanning = false;
 bool bleConnected = false;
+bool bleConnecting = false;  // Flag to track connection in progress
 String bleMidiDeviceName = "";
 NimBLEAddress bleMidiDeviceAddress;
 bool bleAutoConnect = false;
@@ -186,56 +187,78 @@ void checkWiFiConnection() {
 // ============== BLE MIDI ==============
 
 // Callback for BLE MIDI notifications
+// BLE MIDI packet format (Apple/MIDI BLE spec):
+// [header] [timestamp] [status] [data1] [data2] [timestamp] [status] [data1] [data2] ...
+// Header:    1ttttttt (bit 7 = 1, bits 0-6 = timestamp high)
+// Timestamp: 1ttttttt (bit 7 = 1, bits 0-6 = timestamp low)
+// Status:    1sssnnnn (bit 7 = 1, MIDI status byte 0x80-0xFF)
+// Data:      0ddddddd (bit 7 = 0, data bytes 0x00-0x7F)
 void midiNotifyCallback(NimBLERemoteCharacteristic* pChar, uint8_t* pData, size_t length, bool isNotify) {
-    // Debug: log raw data
-    Serial.printf("[BLE MIDI] Raw data (%d bytes): ", length);
-    for (size_t j = 0; j < length && j < 16; j++) {
+    if (length < 3) return; // Minimum: header + timestamp + at least 1 byte
+
+    // Debug: log raw data for troubleshooting
+    Serial.printf("[BLE MIDI] Raw (%d): ", length);
+    for (size_t j = 0; j < length && j < 20; j++) {
         Serial.printf("%02X ", pData[j]);
     }
     Serial.println();
 
-    if (length < 5) return; // Minimum: header + timestamp + status + data1 + data2
+    static uint8_t runningStatus = 0; // Running status for consecutive messages
+    size_t i = 1; // Skip header byte
 
-    // BLE MIDI packet format: [header, timestamp, status, data1, data2, ...]
-    // Header: 1xxxxxxx (high bit set)
-    // Timestamp: 1xxxxxxx (high bit set)
-    // Status: 1001nnnn (Note On 0x90) or 1000nnnn (Note Off 0x80)
-    // Data bytes: 0xxxxxxx (high bit clear, 0-127)
-
-    size_t i = 2; // Start after header and first timestamp
-
-    while (i + 2 < length) {
+    while (i < length) {
         uint8_t byte = pData[i];
 
-        // Check for embedded timestamp (0x80-0xBF range typically)
-        // Timestamps have high bit set but are NOT status bytes
-        // Status bytes are 0x80-0x9F for Note Off/On
-        if ((byte & 0x80) && !(byte == 0x80 || byte == 0x90 ||
-            (byte >= 0x80 && byte <= 0x8F) || (byte >= 0x90 && byte <= 0x9F))) {
+        // Check if this is a timestamp byte (bit 7 set)
+        if (byte & 0x80) {
+            // Could be timestamp OR status byte
+            // Timestamps are typically 0x80-0xBF in practice
+            // Status bytes for Note On/Off are 0x80-0x9F
+            // We need to look ahead to determine which it is
+
+            // If next byte has bit 7 clear, this is likely a timestamp followed by data
+            // (using running status). If next byte has bit 7 set, this could be status.
+
+            // Check if this looks like a MIDI status byte we care about
+            uint8_t type = byte & 0xF0;
+            if ((type == 0x80 || type == 0x90) && (i + 2 < length)) {
+                // Check if following bytes are valid data bytes (bit 7 clear)
+                if ((pData[i + 1] & 0x80) == 0 && (pData[i + 2] & 0x80) == 0) {
+                    // This is a status byte followed by two data bytes
+                    runningStatus = byte;
+                    uint8_t note = pData[i + 1] & 0x7F;
+                    uint8_t velocity = pData[i + 2] & 0x7F;
+
+                    if (type == 0x90 && velocity > 0) {
+                        Serial.printf("[MIDI] ON  n=%d v=%d\r\n", note, velocity);
+                        broadcastMidiNote(note, velocity, true);
+                    } else {
+                        Serial.printf("[MIDI] OFF n=%d\r\n", note);
+                        broadcastMidiNote(note, 0, false);
+                    }
+                    i += 3;
+                    continue;
+                }
+            }
+            // Otherwise, treat as timestamp byte and skip
             i++;
             continue;
         }
 
-        uint8_t type = byte & 0xF0;
+        // Data byte (bit 7 clear) - use running status if we have one
+        if (runningStatus && (i + 1 < length) && ((pData[i + 1] & 0x80) == 0)) {
+            uint8_t type = runningStatus & 0xF0;
+            uint8_t note = byte & 0x7F;
+            uint8_t velocity = pData[i + 1] & 0x7F;
 
-        if (type == 0x90 && i + 2 < length) {
-            // Note On
-            uint8_t note = pData[i + 1] & 0x7F;
-            uint8_t velocity = pData[i + 2] & 0x7F;
-            if (velocity > 0) {
-                Serial.printf("[BLE MIDI] Note ON: %d vel: %d\r\n", note, velocity);
+            if (type == 0x90 && velocity > 0) {
+                Serial.printf("[MIDI] ON* n=%d v=%d\r\n", note, velocity);
                 broadcastMidiNote(note, velocity, true);
-            } else {
-                Serial.printf("[BLE MIDI] Note OFF: %d (vel 0)\r\n", note);
+            } else if (type == 0x80 || (type == 0x90 && velocity == 0)) {
+                Serial.printf("[MIDI] OFF* n=%d\r\n", note);
                 broadcastMidiNote(note, 0, false);
             }
-            i += 3;
-        } else if (type == 0x80 && i + 2 < length) {
-            // Note Off
-            uint8_t note = pData[i + 1] & 0x7F;
-            Serial.printf("[BLE MIDI] Note OFF: %d\r\n", note);
-            broadcastMidiNote(note, 0, false);
-            i += 3;
+            i += 2;
         } else {
             i++;
         }
@@ -264,9 +287,14 @@ class BleClientCallbacks : public NimBLEClientCallbacks {
         } else if (reason == 0x08 || reason == 8) {
             Serial.println("[BLE] Reason: Connection supervision timeout");
         }
-        bleConnected = false;
-        midiConnected = false;
-        broadcastStatus();
+
+        // Only update state and broadcast if we were actually connected
+        // (not during a failed connection attempt)
+        if (!bleConnecting) {
+            bleConnected = false;
+            midiConnected = false;
+            broadcastStatus();
+        }
     }
 };
 
@@ -403,6 +431,9 @@ void connectToBleDevice(NimBLEAddress address) {
     Serial.printf("[BLE] Target address: %s\r\n", address.toString().c_str());
     Serial.printf("[BLE] Address type: %d (0=public, 1=random, 2=public_id, 3=random_id)\r\n", address.getType());
 
+    // Set connecting flag to prevent onDisconnect from interfering
+    bleConnecting = true;
+
     // Clear characteristic pointer
     pMidiCharacteristic = nullptr;
 
@@ -422,24 +453,25 @@ void connectToBleDevice(NimBLEAddress address) {
     delay(200);
 
     // Reuse existing client or create new one
-    if (pBLEClient == nullptr) {
-        Serial.println("[BLE] Creating new BLE client...");
-        pBLEClient = NimBLEDevice::createClient();
-        if (pBLEClient == nullptr) {
-            Serial.println("[BLE] ERROR: Failed to create BLE client!");
-            WiFi.setTxPower(WIFI_POWER_19_5dBm);
-            broadcastStatus();
-            return;
-        }
-        pBLEClient->setClientCallbacks(&clientCallbacks);
-    } else {
-        Serial.println("[BLE] Reusing existing BLE client...");
+    if (pBLEClient != nullptr) {
         if (pBLEClient->isConnected()) {
-            Serial.println("[BLE] Disconnecting from previous device...");
+            Serial.println("[BLE] Disconnecting existing connection...");
             pBLEClient->disconnect();
             delay(300);
         }
+        Serial.println("[BLE] Reusing existing BLE client...");
+    } else {
+        Serial.println("[BLE] Creating new BLE client...");
+        pBLEClient = NimBLEDevice::createClient();
     }
+    if (pBLEClient == nullptr) {
+        Serial.println("[BLE] ERROR: Failed to create BLE client!");
+        WiFi.setTxPower(WIFI_POWER_19_5dBm);
+        bleConnecting = false;
+        broadcastStatus();
+        return;
+    }
+    pBLEClient->setClientCallbacks(&clientCallbacks);
 
     // Set connection parameters for Kawai piano
     // Use longer intervals and timeout for better compatibility
@@ -465,7 +497,12 @@ void connectToBleDevice(NimBLEAddress address) {
         Serial.println("[BLE]   - Piano Bluetooth is off or in sleep mode");
         Serial.println("[BLE]   - WiFi/BLE coexistence issue");
         Serial.println("[BLE]   - Try: power cycle piano, disable BT on phone");
+
+        // Don't delete client here - NimBLE may have already cleaned up internally
+        // Client will be deleted and recreated on next connection attempt
+
         bleConnected = false;
+        bleConnecting = false;
         broadcastStatus();
         return;
     }
@@ -484,8 +521,9 @@ void connectToBleDevice(NimBLEAddress address) {
     if (pService == nullptr) {
         Serial.println("[BLE] MIDI service not found - this device doesn't support BLE MIDI");
         pBLEClient->disconnect();
-        // Keep client for reuse, don't delete
+        // Don't delete client - will be recreated on next connection attempt
         bleConnected = false;
+        bleConnecting = false;
         broadcastStatus();
         return;
     }
@@ -494,8 +532,9 @@ void connectToBleDevice(NimBLEAddress address) {
     if (pMidiCharacteristic == nullptr) {
         Serial.println("[BLE] MIDI characteristic not found");
         pBLEClient->disconnect();
-        // Keep client for reuse, don't delete
+        // Don't delete client - will be recreated on next connection attempt
         bleConnected = false;
+        bleConnecting = false;
         broadcastStatus();
         return;
     }
@@ -512,6 +551,7 @@ void connectToBleDevice(NimBLEAddress address) {
     }
 
     bleConnected = true;
+    bleConnecting = false;  // Connection complete
     midiConnected = true;
     bleMidiDeviceAddress = address;
 
@@ -535,13 +575,18 @@ void connectToBleDevice(NimBLEAddress address) {
 void disconnectBle() {
     Serial.println("[BLE] Disconnecting...");
 
+    // Set flag to prevent onDisconnect callback from broadcasting
+    bleConnecting = true;
+
     if (pBLEClient != nullptr && pBLEClient->isConnected()) {
         pBLEClient->disconnect();
+        // Don't delete client here - NimBLE handles cleanup internally on disconnect
+        // Client will be deleted and recreated on next connection attempt
     }
-    // Keep pBLEClient for reuse - don't delete or null it
 
     pMidiCharacteristic = nullptr;
     bleConnected = false;
+    bleConnecting = false;
     midiConnected = false;
     bleMidiDeviceName = "";
     broadcastStatus();

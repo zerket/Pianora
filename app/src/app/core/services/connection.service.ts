@@ -272,6 +272,11 @@ export class ConnectionService {
               wifiSta: message.features?.wifi_sta ?? false
             }
           });
+
+          // Update BLE state from status message (firmware sends it here, not in separate ble_status)
+          this._bleMidiConnected.set(message.ble_connected ?? false);
+          this._bleDeviceName.set(message.ble_device_name ?? '');
+          this._bleScanning.set(message.ble_scanning ?? false);
           break;
 
         case 'wifi_networks':

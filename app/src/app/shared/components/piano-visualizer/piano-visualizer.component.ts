@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 
@@ -151,7 +151,7 @@ export class PianoVisualizerComponent implements OnDestroy {
   animationDuration = signal(2);
   private noteIdCounter = 0;
   private cleanupInterval: any;
-  private lastProcessedTimestamp = 0;
+  private lastProcessedNoteId = -1;
 
   // Piano keys (88 keys, A0 to C8)
   keys: { note: number; isBlack: boolean; position: number }[] = [];
@@ -159,23 +159,24 @@ export class PianoVisualizerComponent implements OnDestroy {
   constructor() {
     this.generateKeys();
 
-    // Cleanup old notes periodically and check for new notes
-    this.cleanupInterval = setInterval(() => {
-      // Check for new MIDI notes
+    // Reactive effect - fires immediately when lastMidiNote changes
+    // This ensures we catch every single note, even during fast playing
+    effect(() => {
       const lastNote = this.connectionService.lastMidiNote();
-      if (lastNote && lastNote.on && lastNote.timestamp > this.lastProcessedTimestamp) {
-        console.log('[Visualizer] Adding rising note:', lastNote.note, 'vel:', lastNote.velocity);
-        this.lastProcessedTimestamp = lastNote.timestamp;
+      if (lastNote && lastNote.on && lastNote.timestamp !== this.lastProcessedNoteId) {
+        this.lastProcessedNoteId = lastNote.timestamp;
         this.addRisingNote(lastNote.note, lastNote.velocity);
       }
+    });
 
-      // Cleanup old notes
+    // Cleanup old notes periodically (separate from note detection)
+    this.cleanupInterval = setInterval(() => {
       const now = Date.now();
       const duration = this.animationDuration() * 1000;
       this.risingNotes.update(notes =>
         notes.filter(n => now - n.startTime < duration)
       );
-    }, 50); // Check every 50ms for responsive visualization
+    }, 100); // Cleanup every 100ms is sufficient
   }
 
   ngOnDestroy(): void {
@@ -226,7 +227,6 @@ export class PianoVisualizerComponent implements OnDestroy {
   private addRisingNote(note: number, velocity: number): void {
     const key = this.keys.find(k => k.note === note);
     if (!key) {
-      console.log('[Visualizer] Key not found for note:', note);
       return;
     }
 
@@ -234,11 +234,10 @@ export class PianoVisualizerComponent implements OnDestroy {
       id: this.noteIdCounter++,
       note,
       velocity,
-      leftPercent: key.position, // Use same percentage as keyboard keys
+      leftPercent: key.position,
       startTime: Date.now()
     };
 
-    console.log('[Visualizer] Created note at', key.position, '%');
     this.risingNotes.update(notes => [...notes, newNote]);
   }
 
