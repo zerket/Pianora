@@ -4,3 +4,5 @@ CLAUDE.md
 /firmware/.pio
 /firmware/data
 /firmware/flash_files
+/app/src/assets/midi
+/midi

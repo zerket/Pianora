@@ -168,6 +168,7 @@ interface ModeOption {
       border-radius: var(--radius-lg);
       transition: all var(--transition-fast);
       cursor: pointer;
+      color: var(--color-text-primary);
 
       &:hover {
         background-color: var(--color-bg-tertiary);
@@ -181,11 +182,13 @@ interface ModeOption {
 
     .mode-icon {
       font-size: 2rem;
+      color: white;
     }
 
     .mode-label {
       font-weight: 600;
       font-size: 0.9rem;
+      color: white;
     }
 
     .mode-description {

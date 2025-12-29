@@ -108,73 +108,76 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
       <section class="settings-section card">
         <h2>{{ i18n.t('settings.bleMidi') }}</h2>
 
-        <!-- Warning about WiFi -->
         @if (connectionService.staConnected()) {
-          <div class="ble-warning">
-            <span class="warning-icon">&#9888;</span>
-            <span>{{ i18n.t('settings.bleWifiWarning') }}</span>
+          <!-- Instructions when WiFi is active -->
+          <div class="ble-instructions">
+            <span class="info-icon">ℹ️</span>
+            <div class="instructions-content">
+              <p class="instructions-title">{{ i18n.t('settings.bleUnavailable') }}</p>
+              <p>{{ i18n.t('settings.bleWifiInstructions') }}</p>
+            </div>
           </div>
-        }
+        } @else {
+          <!-- Current Status -->
+          <div class="ble-status">
+            @if (connectionService.bleConnected()) {
+              <div class="status-connected">
+                <span class="status-icon">&#9835;</span>
+                <span>{{ connectionService.bleDeviceName() }}</span>
+              </div>
+              <button class="btn btn-small btn-secondary" (click)="disconnectBle()">
+                {{ i18n.t('settings.disconnect') }}
+              </button>
+            } @else {
+              <div class="status-disconnected">
+                <span>{{ i18n.t('settings.bleNotConnected') }}</span>
+              </div>
+            }
+          </div>
 
-        <!-- Current Status -->
-        <div class="ble-status">
-          @if (connectionService.bleConnected()) {
-            <div class="status-connected">
-              <span class="status-icon">&#9835;</span>
-              <span>{{ connectionService.bleDeviceName() }}</span>
-            </div>
-            <button class="btn btn-small btn-secondary" (click)="disconnectBle()">
-              {{ i18n.t('settings.disconnect') }}
-            </button>
-          } @else {
-            <div class="status-disconnected">
-              <span>{{ i18n.t('settings.bleNotConnected') }}</span>
-            </div>
-          }
-        </div>
+          <!-- Device Selection -->
+          @if (!connectionService.bleConnected()) {
+            <div class="ble-connect-form">
+              <div class="setting-row">
+                <span class="setting-label">{{ i18n.t('settings.bleDevice') }}</span>
+                <div class="network-select-row">
+                  <select
+                    [ngModel]="selectedBleDevice()"
+                    (ngModelChange)="selectedBleDevice.set($event)"
+                    [disabled]="connectionService.bleScanning()"
+                  >
+                    <option value="">{{ i18n.t('settings.selectDevice') }}</option>
+                    @for (device of connectionService.bleDevices(); track device.address) {
+                      <option [value]="device.address">
+                        {{ device.name }}
+                      </option>
+                    }
+                  </select>
+                  <button
+                    class="btn btn-small btn-secondary"
+                    (click)="scanBleDevices()"
+                    [disabled]="connectionService.bleScanning()"
+                  >
+                    @if (connectionService.bleScanning()) {
+                      ...
+                    } @else {
+                      &#8635;
+                    }
+                  </button>
+                </div>
+              </div>
 
-        <!-- Device Selection -->
-        @if (!connectionService.bleConnected()) {
-          <div class="ble-connect-form">
-            <div class="setting-row">
-              <span class="setting-label">{{ i18n.t('settings.bleDevice') }}</span>
-              <div class="network-select-row">
-                <select
-                  [ngModel]="selectedBleDevice()"
-                  (ngModelChange)="selectedBleDevice.set($event)"
-                  [disabled]="connectionService.bleScanning()"
-                >
-                  <option value="">{{ i18n.t('settings.selectDevice') }}</option>
-                  @for (device of connectionService.bleDevices(); track device.address) {
-                    <option [value]="device.address">
-                      {{ device.name }}
-                    </option>
-                  }
-                </select>
+              <div class="button-row">
                 <button
-                  class="btn btn-small btn-secondary"
-                  (click)="scanBleDevices()"
-                  [disabled]="connectionService.bleScanning()"
+                  class="btn btn-primary"
+                  (click)="connectToBle()"
+                  [disabled]="!selectedBleDevice() || connectionService.bleScanning()"
                 >
-                  @if (connectionService.bleScanning()) {
-                    ...
-                  } @else {
-                    &#8635;
-                  }
+                  {{ i18n.t('settings.connect') }}
                 </button>
               </div>
             </div>
-
-            <div class="button-row">
-              <button
-                class="btn btn-primary"
-                (click)="connectToBle()"
-                [disabled]="!selectedBleDevice() || connectionService.bleScanning()"
-              >
-                {{ i18n.t('settings.connect') }}
-              </button>
-            </div>
-          </div>
+          }
         }
       </section>
 
@@ -513,21 +516,35 @@ import { LanguageSelectorComponent } from '@shared/components/language-selector/
       padding-top: var(--spacing-sm);
     }
 
-    .ble-warning {
+    .ble-instructions {
       display: flex;
       align-items: flex-start;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-sm);
-      background: rgba(255, 152, 0, 0.15);
-      border: 1px solid rgba(255, 152, 0, 0.3);
+      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      background: rgba(33, 150, 243, 0.15);
+      border: 1px solid rgba(33, 150, 243, 0.3);
       border-radius: var(--radius-sm);
-      color: #f57c00;
-      font-size: 0.85rem;
-      line-height: 1.4;
+      color: var(--color-text-primary);
+      font-size: 0.9rem;
+      line-height: 1.6;
 
-      .warning-icon {
-        font-size: 1.1rem;
+      .info-icon {
+        font-size: 1.5rem;
         flex-shrink: 0;
+      }
+
+      .instructions-content {
+        flex: 1;
+
+        p {
+          margin: 0;
+        }
+
+        .instructions-title {
+          font-weight: 600;
+          margin-bottom: var(--spacing-sm);
+          color: #2196f3;
+        }
       }
     }
   `]

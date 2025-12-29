@@ -2,6 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
 
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
@@ -12,6 +13,7 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withComponentInputBinding()),
     provideAnimations(),
+    provideHttpClient(),
     provideServiceWorker('ngsw-worker.js', {
       enabled: environment.production,
       registrationStrategy: 'registerWhenStable:30000',

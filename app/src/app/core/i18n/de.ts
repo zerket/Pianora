@@ -70,19 +70,29 @@ export const de: TranslationKeys = {
   'learn.autoScrollDesc': 'Sehen Sie das Lied automatisch abspielen, um die Noten zu lernen.',
   'learn.sheetMusic': 'Notenblatt',
   'learn.sheetMusicDesc': 'Das Notenblatt erscheint hier, wenn ein Lied ausgewählt wird.',
+  'learn.tempo': 'Tempo',
+  'learn.play': 'Abspielen',
+  'learn.pause': 'Pause',
+  'learn.stop': 'Stopp',
+  'learn.waitingForNotes': 'Warte auf Noten...',
+  'learn.offlineMode': 'Offline-Modus',
+  'learn.offlineModeDesc': 'Controller nicht verbunden. Sie können im Autoscroll- oder Rhythmus-Modus mit dem Bildschirm-Visualisierer üben.',
 
   // Library page
   'library.title': 'Bibliothek',
   'library.all': 'Alle',
   'library.imported': 'Importiert',
   'library.recordings': 'Aufnahmen',
+  'library.import': 'Import',
   'library.importMidi': 'MIDI-Datei importieren',
   'library.noSongs': 'Keine Lieder',
   'library.noSongsDesc': 'Importieren Sie MIDI-Dateien zum Starten',
   'library.play': 'Abspielen',
   'library.learnSong': 'Lernen',
   'library.delete': 'Löschen',
+  'library.confirmDelete': 'Möchten Sie dieses Lied wirklich löschen?',
   'library.storageUsed': 'verwendet',
+  'library.searchPlaceholder': 'Lieder suchen...',
 
   // Settings page
   'settings.title': 'Einstellungen',
@@ -130,7 +140,8 @@ export const de: TranslationKeys = {
   'settings.bleMidi': 'Bluetooth MIDI',
   'settings.bleDevice': 'Gerät',
   'settings.bleNotConnected': 'Kein Klavier verbunden',
-  'settings.bleWifiWarning': 'Um über Bluetooth zu verbinden, trennen Sie WLAN und verbinden Sie sich mit dem Zugangspunkt des Controllers (Pianora)',
+  'settings.bleUnavailable': 'Bluetooth nicht verfügbar bei aktivem WLAN',
+  'settings.bleWifiInstructions': '1. Trennen Sie WLAN in den obigen Einstellungen\n2. Verbinden Sie sich mit dem Controller-Zugangspunkt "Pianora"\n3. Öffnen Sie die App und suchen Sie nach MIDI-Geräten',
   'settings.selectDevice': 'Gerät auswählen...',
 
   // Calibration page
@@ -173,6 +184,7 @@ export const de: TranslationKeys = {
   'debug.pianoKeys': 'Klaviertasten',
 
   // Common
+  'common.loading': 'Laden...',
   'common.unknown': 'Unbekannt',
   'common.leds': 'LEDs',
   'common.ms': 'ms',

@@ -22,10 +22,12 @@
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
     "@angular/service-worker": "^19.0.0",
+    "@tonejs/midi": "^2.0.28",
     "rxjs": "~7.8.0",
+    "tone": "^15.1.22",
     "tslib": "^2.6.0",
-    "zone.js": "~0.15.0",
-    "vexflow": "^4.2.0"
+    "vexflow": "^4.2.0",
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.0.0",

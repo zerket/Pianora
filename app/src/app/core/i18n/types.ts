@@ -85,19 +85,29 @@ export interface TranslationKeys {
   'learn.autoScrollDesc': string;
   'learn.sheetMusic': string;
   'learn.sheetMusicDesc': string;
+  'learn.tempo': string;
+  'learn.play': string;
+  'learn.pause': string;
+  'learn.stop': string;
+  'learn.waitingForNotes': string;
+  'learn.offlineMode': string;
+  'learn.offlineModeDesc': string;
 
   // Library page
   'library.title': string;
   'library.all': string;
   'library.imported': string;
   'library.recordings': string;
+  'library.import': string;
   'library.importMidi': string;
   'library.noSongs': string;
   'library.noSongsDesc': string;
   'library.play': string;
   'library.learnSong': string;
   'library.delete': string;
+  'library.confirmDelete': string;
   'library.storageUsed': string;
+  'library.searchPlaceholder': string;
 
   // Settings page
   'settings.title': string;
@@ -145,7 +155,8 @@ export interface TranslationKeys {
   'settings.bleMidi': string;
   'settings.bleDevice': string;
   'settings.bleNotConnected': string;
-  'settings.bleWifiWarning': string;
+  'settings.bleUnavailable': string;
+  'settings.bleWifiInstructions': string;
   'settings.selectDevice': string;
 
   // Calibration page
@@ -188,6 +199,7 @@ export interface TranslationKeys {
   'debug.pianoKeys': string;
 
   // Common
+  'common.loading': string;
   'common.unknown': string;
   'common.leds': string;
   'common.ms': string;

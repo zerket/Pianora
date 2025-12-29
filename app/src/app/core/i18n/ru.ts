@@ -62,7 +62,8 @@ export const ru: TranslationKeys = {
   'settings.bleMidi': 'Bluetooth MIDI',
   'settings.bleDevice': 'Устройство',
   'settings.bleNotConnected': 'Пианино не подключено',
-  'settings.bleWifiWarning': 'Для подключения по Bluetooth отключите WiFi и подключитесь к точке доступа контроллера (Pianora)',
+  'settings.bleUnavailable': 'Bluetooth недоступен при активном WiFi',
+  'settings.bleWifiInstructions': '1. Отключите WiFi в настройках выше\n2. Подключитесь к точке доступа контроллера "Pianora"\n3. Откройте приложение и выполните поиск MIDI устройств',
   'settings.selectDevice': 'Выберите устройство...',
 
   // Learn page
@@ -82,19 +83,29 @@ export const ru: TranslationKeys = {
   'learn.autoScrollDesc': 'Смотрите автоматическое воспроизведение для изучения нот.',
   'learn.sheetMusic': 'Нотный стан',
   'learn.sheetMusicDesc': 'Здесь появится нотный стан при выборе композиции.',
+  'learn.tempo': 'Темп',
+  'learn.play': 'Воспроизвести',
+  'learn.pause': 'Пауза',
+  'learn.stop': 'Стоп',
+  'learn.waitingForNotes': 'Ожидание нажатия нот...',
+  'learn.offlineMode': 'Автономный режим',
+  'learn.offlineModeDesc': 'Контроллер не подключен. Вы можете практиковаться в режимах Автопрокрутки или Ритма, используя визуализатор на экране.',
 
   // Library page
   'library.title': 'Библиотека',
   'library.all': 'Все',
   'library.imported': 'Импорт',
   'library.recordings': 'Записи',
+  'library.import': 'Импорт',
   'library.importMidi': 'Импорт MIDI файла',
   'library.noSongs': 'Нет композиций',
   'library.noSongsDesc': 'Импортируйте MIDI файлы для начала',
   'library.play': 'Воспроизвести',
   'library.learnSong': 'Учить',
   'library.delete': 'Удалить',
+  'library.confirmDelete': 'Вы уверены, что хотите удалить эту композицию?',
   'library.storageUsed': 'использовано',
+  'library.searchPlaceholder': 'Поиск композиций...',
 
   // Settings page
   'settings.title': 'Настройки',
@@ -173,6 +184,7 @@ export const ru: TranslationKeys = {
   'debug.pianoKeys': 'Клавиши пианино',
 
   // Common
+  'common.loading': 'Загрузка...',
   'common.unknown': 'Неизвестно',
   'common.leds': 'LED',
   'common.ms': 'мс',

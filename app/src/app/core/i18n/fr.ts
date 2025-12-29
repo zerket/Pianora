@@ -70,19 +70,29 @@ export const fr: TranslationKeys = {
   'learn.autoScrollDesc': 'Regardez le morceau jouer automatiquement pour apprendre les notes.',
   'learn.sheetMusic': 'Partition',
   'learn.sheetMusicDesc': "La partition apparaîtra ici lorsqu'un morceau sera sélectionné.",
+  'learn.tempo': 'Tempo',
+  'learn.play': 'Lecture',
+  'learn.pause': 'Pause',
+  'learn.stop': 'Arrêter',
+  'learn.waitingForNotes': 'En attente des notes...',
+  'learn.offlineMode': 'Mode hors ligne',
+  'learn.offlineModeDesc': 'Contrôleur non connecté. Vous pouvez pratiquer en mode défilement automatique ou rythme en utilisant le visualiseur à l\'écran.',
 
   // Library page
   'library.title': 'Bibliothèque',
   'library.all': 'Tout',
   'library.imported': 'Importé',
   'library.recordings': 'Enregistrements',
+  'library.import': 'Importer',
   'library.importMidi': 'Importer fichier MIDI',
   'library.noSongs': 'Pas de morceaux',
   'library.noSongsDesc': 'Importez des fichiers MIDI pour commencer',
   'library.play': 'Lire',
   'library.learnSong': 'Apprendre',
   'library.delete': 'Supprimer',
+  'library.confirmDelete': 'Voulez-vous vraiment supprimer ce morceau ?',
   'library.storageUsed': 'utilisé',
+  'library.searchPlaceholder': 'Rechercher des morceaux...',
 
   // Settings page
   'settings.title': 'Paramètres',
@@ -130,7 +140,8 @@ export const fr: TranslationKeys = {
   'settings.bleMidi': 'Bluetooth MIDI',
   'settings.bleDevice': 'Appareil',
   'settings.bleNotConnected': 'Aucun piano connecté',
-  'settings.bleWifiWarning': 'Pour connecter via Bluetooth, déconnectez le WiFi et connectez-vous au point d\'accès du contrôleur (Pianora)',
+  'settings.bleUnavailable': 'Bluetooth non disponible avec WiFi actif',
+  'settings.bleWifiInstructions': '1. Déconnectez le WiFi dans les paramètres ci-dessus\n2. Connectez-vous au point d\'accès du contrôleur "Pianora"\n3. Ouvrez l\'application et recherchez les appareils MIDI',
   'settings.selectDevice': 'Sélectionner un appareil...',
 
   // Calibration page
@@ -173,6 +184,7 @@ export const fr: TranslationKeys = {
   'debug.pianoKeys': 'Touches du piano',
 
   // Common
+  'common.loading': 'Chargement...',
   'common.unknown': 'Inconnu',
   'common.leds': 'LEDs',
   'common.ms': 'ms',

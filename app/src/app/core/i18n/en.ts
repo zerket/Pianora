@@ -62,7 +62,8 @@ export const en: TranslationKeys = {
   'settings.bleMidi': 'Bluetooth MIDI',
   'settings.bleDevice': 'Device',
   'settings.bleNotConnected': 'No piano connected',
-  'settings.bleWifiWarning': 'To connect via Bluetooth, disconnect from WiFi and connect to the controller\'s access point (Pianora)',
+  'settings.bleUnavailable': 'Bluetooth unavailable with active WiFi',
+  'settings.bleWifiInstructions': '1. Disconnect WiFi in settings above\n2. Connect to the controller access point "Pianora"\n3. Open the app and scan for MIDI devices',
   'settings.selectDevice': 'Select device...',
 
   // Learn page
@@ -82,19 +83,29 @@ export const en: TranslationKeys = {
   'learn.autoScrollDesc': 'Watch the song play automatically to learn the notes.',
   'learn.sheetMusic': 'Sheet Music',
   'learn.sheetMusicDesc': 'Sheet music display will appear here when a song is selected.',
+  'learn.tempo': 'Tempo',
+  'learn.play': 'Play',
+  'learn.pause': 'Pause',
+  'learn.stop': 'Stop',
+  'learn.waitingForNotes': 'Waiting for notes...',
+  'learn.offlineMode': 'Offline Mode',
+  'learn.offlineModeDesc': 'Controller is not connected. You can still practice in Auto-scroll or Rhythm mode using the on-screen visualizer.',
 
   // Library page
   'library.title': 'Library',
   'library.all': 'All',
   'library.imported': 'Imported',
   'library.recordings': 'Recordings',
+  'library.import': 'Import',
   'library.importMidi': 'Import MIDI File',
   'library.noSongs': 'No songs yet',
   'library.noSongsDesc': 'Import MIDI files to get started',
   'library.play': 'Play',
   'library.learnSong': 'Learn',
   'library.delete': 'Delete',
+  'library.confirmDelete': 'Are you sure you want to delete this song?',
   'library.storageUsed': 'used',
+  'library.searchPlaceholder': 'Search songs...',
 
   // Settings page
   'settings.title': 'Settings',
@@ -173,6 +184,7 @@ export const en: TranslationKeys = {
   'debug.pianoKeys': 'Piano Keys',
 
   // Common
+  'common.loading': 'Loading...',
   'common.unknown': 'Unknown',
   'common.leds': 'LEDs',
   'common.ms': 'ms',
