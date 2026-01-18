@@ -1,6 +1,6 @@
 /**
- * Pianora Firmware v0.6.0 - TEST 9
- * USB MIDI + WebSocket (no BLE callbacks)
+ * Pianora Firmware v0.6.1 - TEST 10
+ * USB MIDI + WebSocket + LittleFS Web App
  */
 
 #include <Arduino.h>
@@ -18,6 +18,16 @@
 
 #define LOWEST_NOTE  21
 #define HIGHEST_NOTE 108
+
+// WiFi Configuration
+#define WIFI_STA_SSID     "RT-GPON-F060_EXT"
+#define WIFI_STA_PASSWORD "Q579EY7q"
+#define WIFI_AP_SSID      "Pianora"
+#define WIFI_AP_PASSWORD  "12345678"
+#define WIFI_CONNECT_ATTEMPTS 3
+#define WIFI_CONNECT_TIMEOUT_MS 10000
+
+bool wifiIsAP = false;
 
 // LED index lookup table for 88 keys (A0-C8, notes 21-108)
 // Index in array = note - 21 (keyIndex)
@@ -85,6 +95,8 @@ void sendStatusToClients() {
     payload["brightness"] = ledBrightness;
     payload["heap"] = ESP.getFreeHeap();
     payload["version"] = FW_VERSION;
+    payload["wifi_mode"] = wifiIsAP ? "AP" : "STA";
+    payload["ip"] = wifiIsAP ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
 
     String json;
     serializeJson(doc, json);
@@ -351,7 +363,7 @@ void setup() {
     delay(2000);
 
     Serial.println("\n\n========================================");
-    Serial.printf("  Pianora TEST 9 - USB MIDI + WebSocket\n");
+    Serial.printf("  Pianora TEST 10 - USB MIDI + LittleFS\n");
     Serial.println("========================================\n");
 
     // 1. FastLED
@@ -371,25 +383,88 @@ void setup() {
 
     // 3. LittleFS
     Serial.print("3. LittleFS... ");
-    if (!LittleFS.begin(true)) {
-        Serial.println("FAIL");
+    if (!LittleFS.begin(false)) {  // false = don't format if mount fails
+        Serial.println("Mount failed, formatting...");
+        if (!LittleFS.begin(true)) {
+            Serial.println("FAIL even after format!");
+        }
+    }
+    Serial.printf("OK (Total: %u, Used: %u)\n", LittleFS.totalBytes(), LittleFS.usedBytes());
+
+    // List root directory
+    Serial.println("   Files in LittleFS:");
+    File root = LittleFS.open("/");
+    if (root && root.isDirectory()) {
+        File file = root.openNextFile();
+        int count = 0;
+        while (file && count < 20) {
+            Serial.printf("   - %s (%d bytes)\n", file.name(), file.size());
+            file = root.openNextFile();
+            count++;
+        }
+        if (count == 0) {
+            Serial.println("   (empty)");
+        } else if (count >= 20) {
+            Serial.println("   ... (more files)");
+        }
     } else {
-        Serial.printf("OK (Total: %u, Used: %u)\n", LittleFS.totalBytes(), LittleFS.usedBytes());
+        Serial.println("   (failed to open root)");
     }
 
-    // 4. WiFi AP
-    Serial.print("4. WiFi AP... ");
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP("Pianora", "12345678");
-    fill_solid(leds, NUM_LEDS, CRGB::Purple);
-    FastLED.show();
-    Serial.printf("OK - IP: %s\n", WiFi.softAPIP().toString().c_str());
+    // 4. WiFi - try Station first, fallback to AP
+    Serial.println("4. WiFi Setup...");
+    WiFi.mode(WIFI_STA);
+
+    bool connected = false;
+    for (int attempt = 1; attempt <= WIFI_CONNECT_ATTEMPTS; attempt++) {
+        Serial.printf("   Connecting to '%s' (attempt %d/%d)...\n",
+                      WIFI_STA_SSID, attempt, WIFI_CONNECT_ATTEMPTS);
+
+        WiFi.begin(WIFI_STA_SSID, WIFI_STA_PASSWORD);
+
+        uint32_t startTime = millis();
+        while (WiFi.status() != WL_CONNECTED &&
+               (millis() - startTime) < WIFI_CONNECT_TIMEOUT_MS) {
+            delay(500);
+            Serial.print(".");
+            // Blink purple while connecting
+            fill_solid(leds, NUM_LEDS, (millis() / 500) % 2 ? CRGB::Purple : CRGB::Black);
+            FastLED.show();
+        }
+        Serial.println();
+
+        if (WiFi.status() == WL_CONNECTED) {
+            connected = true;
+            break;
+        }
+
+        Serial.println("   Failed!");
+        WiFi.disconnect();
+    }
+
+    if (connected) {
+        wifiIsAP = false;
+        fill_solid(leds, NUM_LEDS, CRGB::Blue);
+        FastLED.show();
+        Serial.printf("   Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    } else {
+        // Fallback to AP mode
+        Serial.println("   Starting AP mode...");
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
+        wifiIsAP = true;
+        fill_solid(leds, NUM_LEDS, CRGB::Purple);
+        FastLED.show();
+        Serial.printf("   AP started: %s / %s\n", WIFI_AP_SSID, WIFI_AP_PASSWORD);
+        Serial.printf("   IP: %s\n", WiFi.softAPIP().toString().c_str());
+    }
 
     // 5. WebSocket + WebServer
-    Serial.print("5. WebSocket... ");
+    Serial.print("5. WebSocket + WebServer... ");
     ws.onEvent(onWsEvent);
     server.addHandler(&ws);
 
+    // API endpoints
     server.on("/api/status", HTTP_GET, [](AsyncWebServerRequest* request) {
         JsonDocument doc;
         doc["usb_connected"] = usbDeviceConnected;
@@ -397,21 +472,41 @@ void setup() {
         doc["brightness"] = ledBrightness;
         doc["heap"] = ESP.getFreeHeap();
         doc["version"] = FW_VERSION;
+        doc["wifi_mode"] = wifiIsAP ? "AP" : "STA";
+        doc["ip"] = wifiIsAP ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
 
         String json;
         serializeJson(doc, json);
         request->send(200, "application/json", json);
     });
 
+    // Serve static files from LittleFS
+    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+
+    // SPA fallback - serve index.html for non-file requests
     server.onNotFound([](AsyncWebServerRequest* request) {
-        String html = "<html><head><title>Pianora</title></head><body>";
-        html += "<h1>Pianora TEST 9</h1>";
-        html += "<p>USB: " + String(usbDeviceConnected ? "Connected" : "Not connected") + "</p>";
-        html += "<p>USB MIDI: " + String(usbMidiReady ? "Ready" : "Not ready") + "</p>";
-        html += "<p>Heap: " + String(ESP.getFreeHeap()) + "</p>";
-        html += "<p><a href='/api/status'>API Status</a></p>";
-        html += "</body></html>";
-        request->send(200, "text/html", html);
+        // If it's an API request, return 404
+        if (request->url().startsWith("/api/")) {
+            request->send(404, "application/json", "{\"error\":\"Not found\"}");
+            return;
+        }
+
+        // For SPA routes, serve index.html
+        if (LittleFS.exists("/index.html")) {
+            request->send(LittleFS, "/index.html", "text/html");
+        } else {
+            // Fallback if LittleFS is empty or index.html missing
+            String html = "<html><head><title>Pianora</title></head><body>";
+            html += "<h1>Pianora TEST 10</h1>";
+            html += "<p>LittleFS: index.html not found</p>";
+            html += "<p>USB: " + String(usbDeviceConnected ? "Connected" : "Not connected") + "</p>";
+            html += "<p>USB MIDI: " + String(usbMidiReady ? "Ready" : "Not ready") + "</p>";
+            html += "<p>Heap: " + String(ESP.getFreeHeap()) + "</p>";
+            html += "<p>WiFi: " + String(wifiIsAP ? "AP Mode" : "Station Mode") + "</p>";
+            html += "<p><a href='/api/status'>API Status</a></p>";
+            html += "</body></html>";
+            request->send(200, "text/html", html);
+        }
     });
 
     server.begin();
@@ -451,8 +546,13 @@ void setup() {
 
     Serial.println("\n========================================");
     Serial.println("  READY!");
-    Serial.printf("  WiFi: Pianora / 12345678\n");
-    Serial.printf("  Web: http://%s\n", WiFi.softAPIP().toString().c_str());
+    if (wifiIsAP) {
+        Serial.printf("  WiFi AP: %s / %s\n", WIFI_AP_SSID, WIFI_AP_PASSWORD);
+        Serial.printf("  Web: http://%s\n", WiFi.softAPIP().toString().c_str());
+    } else {
+        Serial.printf("  WiFi: Connected to %s\n", WIFI_STA_SSID);
+        Serial.printf("  Web: http://%s\n", WiFi.localIP().toString().c_str());
+    }
     Serial.printf("  Free Heap: %u\n", ESP.getFreeHeap());
     Serial.println("========================================\n");
 }
