@@ -1,15 +1,13 @@
-// LED Mode enum
+// LED Mode enum - values must match firmware config.h LEDMode enum
 export enum LedMode {
-  OFF = 0,
-  FREE_PLAY = 1,
-  VISUALIZER = 2,
-  LEARNING = 3,
-  DEMO = 4,
-  AMBIENT = 5,
-  FALLING_NOTES = 6,
-  SPLIT = 7,
-  VELOCITY = 8,
-  RANDOM = 9
+  FREE_PLAY = 0,     // Simple note highlight
+  VELOCITY = 1,      // Color based on velocity
+  SPLIT = 2,         // Two-color keyboard split
+  RANDOM = 3,        // Random colors per note
+  VISUALIZER = 4,    // Splash/fade effects
+  AMBIENT = 5,       // Decorative effects
+  LEARNING = 6,      // Learning mode hints
+  DEMO = 7           // Auto-play demos
 }
 
 // MIDI Source types

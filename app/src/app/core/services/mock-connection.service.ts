@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { ControllerStatus, MidiNote, WiFiNetwork, WiFiStatus } from './connection.service';
+import { ControllerStatus, MidiNote, WiFiNetwork, WiFiStatus, RecordingData, CalibrationStep, HotkeyEvent } from './connection.service';
 
 /**
  * Mock Connection Service for testing without hardware.
@@ -23,7 +23,6 @@ export class MockConnectionService {
     version: '0.1.0-mock',
     midiConnected: true,
     bleConnected: false,
-    rtpConnected: false,
     mode: 1,
     brightness: 128,
     calibrated: true,
@@ -41,7 +40,6 @@ export class MockConnectionService {
     features: {
       elegantOta: true,
       bleMidi: false,
-      rtpMidi: false,
       wifiSta: true
     }
   });
@@ -79,6 +77,28 @@ export class MockConnectionService {
   readonly bleConnected = this._bleMidiConnected.asReadonly();
   readonly bleDeviceName = this._bleDeviceName.asReadonly();
   readonly bleDevices = this._bleDevices.asReadonly();
+
+  // Recording state
+  private _isRecording = signal(false);
+  private _recordingNotes = signal(0);
+  private _recordingData = signal<RecordingData | null>(null);
+
+  // Calibration state
+  private _calibrationStep = signal<CalibrationStep | null>(null);
+
+  // Hotkey state
+  private _lastHotkey = signal<HotkeyEvent | null>(null);
+
+  // Recording public signals
+  readonly isRecording = this._isRecording.asReadonly();
+  readonly recordingNotes = this._recordingNotes.asReadonly();
+  readonly recordingData = this._recordingData.asReadonly();
+
+  // Calibration public signals
+  readonly calibrationStep = this._calibrationStep.asReadonly();
+
+  // Hotkey public signals
+  readonly lastHotkey = this._lastHotkey.asReadonly();
 
   private noteInterval: any = null;
 
@@ -131,10 +151,30 @@ export class MockConnectionService {
 
   startRecording(): void {
     console.log('[MOCK] Recording started');
+    this._isRecording.set(true);
+    this._recordingNotes.set(0);
+    this._recordingData.set(null);
   }
 
   stopRecording(): void {
     console.log('[MOCK] Recording stopped');
+    this._isRecording.set(false);
+    // Simulate some recorded data
+    this._recordingData.set({
+      totalNotes: 24,
+      durationMs: 5000,
+      notes: [
+        { t: 0, n: 60, v: 100 },
+        { t: 500, n: 60, v: 0 },
+        { t: 500, n: 62, v: 90 },
+        { t: 1000, n: 62, v: 0 }
+      ]
+    });
+  }
+
+  // Learning mode: send expected notes to firmware
+  setExpectedNotes(notes: number[]): void {
+    console.log('[MOCK] Setting expected notes:', notes);
   }
 
   // WiFi methods

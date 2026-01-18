@@ -38,11 +38,33 @@ export const ru: TranslationKeys = {
   'play.mode.random': 'Случайный',
   'play.mode.randomDesc': 'Случайные цвета для каждой клавиши',
 
+  // Demo mode
+  'play.demo.title': 'Демо воспроизведение',
+  'play.demo.selectSongHint': 'Выберите композицию для автоматического воспроизведения на LED-ленте.',
+  'play.demo.chooseSong': 'Выбрать песню',
+  'play.demo.changeSong': 'Изменить',
+  'play.demo.tempo': 'Темп',
+
   // Split mode settings
   'play.split.title': 'Настройки разделения',
   'play.split.splitPoint': 'Точка разделения',
   'play.split.leftColor': 'Цвет левой части',
   'play.split.rightColor': 'Цвет правой части',
+
+  // Effects settings
+  'play.effects.title': 'Эффекты',
+  'play.effects.background': 'Фоновая подсветка',
+  'play.effects.bgColor': 'Цвет фона',
+  'play.effects.bgBrightness': 'Яркость фона',
+  'play.effects.hueShift': 'Смещение цвета аккордов',
+  'play.effects.shiftAmount': 'Величина смещения',
+
+  // Recording
+  'play.recording.title': 'Запись',
+  'play.recording.start': 'Начать запись',
+  'play.recording.stop': 'Остановить запись',
+  'play.recording.inProgress': 'Запись...',
+  'play.recording.namePrompt': 'Введите название записи',
 
   // MIDI sources
   'play.midi.title': 'MIDI вход',

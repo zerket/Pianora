@@ -1,0 +1,26 @@
+/**
+ * MINIMAL TEST FIRMWARE
+ * This file is a backup - rename main.cpp to main.cpp.bak and this file to main.cpp to test
+ * If this boots, the issue is in the full firmware code.
+ * If this doesn't boot, the issue is with the flash/partition/bootloader.
+ */
+
+#include <Arduino.h>
+
+void setup() {
+    Serial.begin(115200);
+    delay(3000);
+    Serial.println("\n\n=== MINIMAL TEST OK ===");
+    Serial.println("If you see this, the ESP32 boots fine!");
+    Serial.println("The issue is in the full firmware code.");
+}
+
+void loop() {
+    static uint32_t lastPrint = 0;
+    if (millis() - lastPrint >= 1000) {
+        lastPrint = millis();
+        Serial.print("Uptime: ");
+        Serial.print(millis() / 1000);
+        Serial.println(" seconds");
+    }
+}

@@ -38,11 +38,33 @@ export const en: TranslationKeys = {
   'play.mode.random': 'Random',
   'play.mode.randomDesc': 'Random colors for each key',
 
+  // Demo mode
+  'play.demo.title': 'Demo Playback',
+  'play.demo.selectSongHint': 'Choose a song to play automatically on the LED strip.',
+  'play.demo.chooseSong': 'Choose Song',
+  'play.demo.changeSong': 'Change',
+  'play.demo.tempo': 'Tempo',
+
   // Split mode settings
   'play.split.title': 'Split Settings',
   'play.split.splitPoint': 'Split Point',
   'play.split.leftColor': 'Left Color',
   'play.split.rightColor': 'Right Color',
+
+  // Effects settings
+  'play.effects.title': 'Effects',
+  'play.effects.background': 'Background Glow',
+  'play.effects.bgColor': 'Background Color',
+  'play.effects.bgBrightness': 'Background Brightness',
+  'play.effects.hueShift': 'Chord Color Shift',
+  'play.effects.shiftAmount': 'Shift Amount',
+
+  // Recording
+  'play.recording.title': 'Recording',
+  'play.recording.start': 'Start Recording',
+  'play.recording.stop': 'Stop Recording',
+  'play.recording.inProgress': 'Recording...',
+  'play.recording.namePrompt': 'Enter recording name',
 
   // MIDI sources
   'play.midi.title': 'MIDI Input',

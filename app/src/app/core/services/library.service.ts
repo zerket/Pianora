@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { RecordingData, RecordedNote } from './connection.service';
 
 export interface Song {
   id: string;
@@ -169,7 +170,10 @@ export class LibraryService {
     return song;
   }
 
-  async saveRecording(name: string, data: ArrayBuffer): Promise<Song> {
+  async saveRecording(name: string, recordingData: RecordingData): Promise<Song> {
+    // Convert RecordingData to simple MIDI format
+    const data = this.convertRecordingToMidi(recordingData);
+
     const song: Song = {
       id: `recording-${Date.now()}`,
       name,
@@ -185,6 +189,91 @@ export class LibraryService {
     this._storageUsed.update(used => used + data.byteLength);
 
     return song;
+  }
+
+  /**
+   * Convert RecordingData to a simple Standard MIDI File (SMF) format
+   */
+  private convertRecordingToMidi(recording: RecordingData): ArrayBuffer {
+    // Simple SMF format 0 (single track)
+    const ticksPerQuarter = 480;
+    const msPerQuarter = 500; // 120 BPM
+    const ticksPerMs = ticksPerQuarter / msPerQuarter;
+
+    // Sort notes by timestamp
+    const notes = [...recording.notes].sort((a, b) => a.t - b.t);
+
+    // Build track events
+    const events: { delta: number; data: number[] }[] = [];
+    let lastTick = 0;
+
+    for (const note of notes) {
+      const currentTick = Math.round(note.t * ticksPerMs);
+      const delta = currentTick - lastTick;
+      lastTick = currentTick;
+
+      if (note.v > 0) {
+        // Note On
+        events.push({
+          delta,
+          data: [0x90, note.n, note.v]
+        });
+      } else {
+        // Note Off
+        events.push({
+          delta,
+          data: [0x80, note.n, 0]
+        });
+      }
+    }
+
+    // End of track
+    events.push({ delta: 0, data: [0xFF, 0x2F, 0x00] });
+
+    // Build track chunk
+    const trackData: number[] = [];
+    for (const event of events) {
+      // Write variable-length delta time
+      trackData.push(...this.writeVarLen(event.delta));
+      // Write event data
+      trackData.push(...event.data);
+    }
+
+    // Build complete MIDI file
+    const header = [
+      0x4D, 0x54, 0x68, 0x64, // "MThd"
+      0x00, 0x00, 0x00, 0x06, // Header length
+      0x00, 0x00,             // Format 0
+      0x00, 0x01,             // 1 track
+      (ticksPerQuarter >> 8) & 0xFF, ticksPerQuarter & 0xFF  // Ticks per quarter
+    ];
+
+    const trackHeader = [
+      0x4D, 0x54, 0x72, 0x6B, // "MTrk"
+      (trackData.length >> 24) & 0xFF,
+      (trackData.length >> 16) & 0xFF,
+      (trackData.length >> 8) & 0xFF,
+      trackData.length & 0xFF
+    ];
+
+    const midiFile = new Uint8Array([...header, ...trackHeader, ...trackData]);
+    return midiFile.buffer;
+  }
+
+  /**
+   * Write variable-length quantity for MIDI
+   */
+  private writeVarLen(value: number): number[] {
+    const result: number[] = [];
+    let v = value & 0x7F;
+    result.unshift(v);
+    value >>= 7;
+    while (value > 0) {
+      v = (value & 0x7F) | 0x80;
+      result.unshift(v);
+      value >>= 7;
+    }
+    return result;
   }
 
   private saveSong(song: Song): Promise<void> {

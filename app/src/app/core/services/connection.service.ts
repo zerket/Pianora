@@ -5,7 +5,6 @@ export interface ControllerStatus {
   version: string;
   midiConnected: boolean;
   bleConnected: boolean;
-  rtpConnected: boolean;
   mode: number;
   brightness: number;
   calibrated: boolean;
@@ -23,7 +22,6 @@ export interface ControllerStatus {
   features: {
     elegantOta: boolean;
     bleMidi: boolean;
-    rtpMidi: boolean;
     wifiSta: boolean;
   };
 }
@@ -46,6 +44,31 @@ export interface WiFiStatus {
   message: string;
   connected: boolean;
   ip: string;
+}
+
+export interface RecordedNote {
+  t: number;  // timestamp in ms
+  n: number;  // note number
+  v: number;  // velocity (0 = note off)
+}
+
+export interface RecordingData {
+  totalNotes: number;
+  durationMs: number;
+  notes: RecordedNote[];
+}
+
+export interface CalibrationStep {
+  step: string;
+  message: string;
+  firstNote?: number;
+  lastNote?: number;
+  calibrated?: boolean;
+}
+
+export interface HotkeyEvent {
+  action: string;  // 'play_pause'
+  timestamp: number;
 }
 
 @Injectable({
@@ -73,17 +96,30 @@ export class ConnectionService {
   private _bleDeviceName = signal('');
   private _bleDevices = signal<{ name: string; address: string }[]>([]);
 
+  // Recording state
+  private _isRecording = signal(false);
+  private _recordingNotes = signal(0);
+  private _recordingData = signal<RecordingData | null>(null);
+  private recordingChunks: RecordedNote[] = [];
+  private recordingExpectedChunks = 0;
+  private recordingTotalNotes = 0;
+  private recordingDurationMs = 0;
+
+  // Calibration state
+  private _calibrationStep = signal<CalibrationStep | null>(null);
+
+  // Hotkey state
+  private _lastHotkey = signal<HotkeyEvent | null>(null);
+
   // Public computed signals
   readonly connected = this._connected.asReadonly();
   readonly status = this._status.asReadonly();
   readonly lastMidiNote = this._lastMidiNote.asReadonly();
   readonly activeNotes = this._activeNotes.asReadonly();
   readonly midiConnected = computed(() => this._status()?.midiConnected ?? false);
-  readonly rtpConnected = computed(() => this._status()?.rtpConnected ?? false);
   readonly calibrated = computed(() => this._status()?.calibrated ?? false);
   readonly hasOta = computed(() => this._status()?.features?.elegantOta ?? false);
   readonly hasBleMidi = computed(() => this._status()?.features?.bleMidi ?? false);
-  readonly hasRtpMidi = computed(() => this._status()?.features?.rtpMidi ?? false);
   readonly hasWifiSta = computed(() => this._status()?.features?.wifiSta ?? false);
   readonly staConnected = computed(() => this._status()?.wifi?.staConnected ?? false);
   readonly staIP = computed(() => this._status()?.wifi?.staIp ?? '');
@@ -98,6 +134,17 @@ export class ConnectionService {
   readonly bleConnected = this._bleMidiConnected.asReadonly();
   readonly bleDeviceName = this._bleDeviceName.asReadonly();
   readonly bleDevices = this._bleDevices.asReadonly();
+
+  // Recording public signals
+  readonly isRecording = this._isRecording.asReadonly();
+  readonly recordingNotes = this._recordingNotes.asReadonly();
+  readonly recordingData = this._recordingData.asReadonly();
+
+  // Calibration public signals
+  readonly calibrationStep = this._calibrationStep.asReadonly();
+
+  // Hotkey public signals
+  readonly lastHotkey = this._lastHotkey.asReadonly();
 
   connect(): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
@@ -240,6 +287,11 @@ export class ConnectionService {
     this.send('stop_recording');
   }
 
+  // Learning mode: send expected notes to firmware
+  setExpectedNotes(notes: number[]): void {
+    this.send('set_expected_notes', { notes });
+  }
+
   private handleMessage(data: string): void {
     try {
       const message = JSON.parse(data);
@@ -250,7 +302,6 @@ export class ConnectionService {
             version: message.version,
             midiConnected: message.midi_connected,
             bleConnected: message.ble_connected ?? false,
-            rtpConnected: message.rtp_connected ?? false,
             mode: message.mode,
             brightness: message.brightness,
             calibrated: message.calibrated,
@@ -268,7 +319,6 @@ export class ConnectionService {
             features: {
               elegantOta: message.features?.elegant_ota ?? false,
               bleMidi: message.features?.ble_midi ?? false,
-              rtpMidi: message.features?.rtp_midi ?? false,
               wifiSta: message.features?.wifi_sta ?? false
             }
           });
@@ -277,6 +327,10 @@ export class ConnectionService {
           this._bleMidiConnected.set(message.ble_connected ?? false);
           this._bleDeviceName.set(message.ble_device_name ?? '');
           this._bleScanning.set(message.ble_scanning ?? false);
+
+          // Update recording state
+          this._isRecording.set(message.is_recording ?? false);
+          this._recordingNotes.set(message.recording_notes ?? 0);
           break;
 
         case 'wifi_networks':
@@ -326,7 +380,53 @@ export class ConnectionService {
           break;
 
         case 'calibration_step':
-          console.log('Calibration step:', message.step, message.led_index);
+          console.log('Calibration step:', message.step, message.message);
+          this._calibrationStep.set({
+            step: message.step,
+            message: message.message,
+            firstNote: message.first_note,
+            lastNote: message.last_note,
+            calibrated: message.calibrated
+          });
+          break;
+
+        case 'recording_data':
+          // Handle chunked recording data
+          const chunk = message.chunk ?? 0;
+          const totalChunks = message.total_chunks ?? 1;
+
+          if (chunk === 0) {
+            // First chunk - initialize
+            this.recordingChunks = [];
+            this.recordingExpectedChunks = totalChunks;
+            this.recordingTotalNotes = message.total_notes ?? 0;
+            this.recordingDurationMs = message.duration_ms ?? 0;
+          }
+
+          // Add notes from this chunk
+          if (message.notes && Array.isArray(message.notes)) {
+            this.recordingChunks.push(...message.notes);
+          }
+
+          // Check if all chunks received
+          if (chunk === totalChunks - 1) {
+            // All chunks received - emit recording data
+            this._recordingData.set({
+              totalNotes: this.recordingTotalNotes,
+              durationMs: this.recordingDurationMs,
+              notes: this.recordingChunks
+            });
+            console.log('Recording data received:', this.recordingTotalNotes, 'notes');
+          }
+          break;
+
+        case 'hotkey':
+          // Handle hotkey events from piano
+          console.log('Hotkey received:', message.action);
+          this._lastHotkey.set({
+            action: message.action,
+            timestamp: Date.now()
+          });
           break;
 
         case 'error':

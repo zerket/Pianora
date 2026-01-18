@@ -53,11 +53,33 @@ export interface TranslationKeys {
   'play.mode.random': string;
   'play.mode.randomDesc': string;
 
+  // Demo mode
+  'play.demo.title': string;
+  'play.demo.selectSongHint': string;
+  'play.demo.chooseSong': string;
+  'play.demo.changeSong': string;
+  'play.demo.tempo': string;
+
   // Split mode settings
   'play.split.title': string;
   'play.split.splitPoint': string;
   'play.split.leftColor': string;
   'play.split.rightColor': string;
+
+  // Effects settings
+  'play.effects.title': string;
+  'play.effects.background': string;
+  'play.effects.bgColor': string;
+  'play.effects.bgBrightness': string;
+  'play.effects.hueShift': string;
+  'play.effects.shiftAmount': string;
+
+  // Recording
+  'play.recording.title': string;
+  'play.recording.start': string;
+  'play.recording.stop': string;
+  'play.recording.inProgress': string;
+  'play.recording.namePrompt': string;
 
   // MIDI sources
   'play.midi.title': string;

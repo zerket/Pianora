@@ -1,0 +1,342 @@
+#include "usb_midi.h"
+
+// Global pointer - initialized in setup() to avoid static initialization issues
+USBMidiHost* usbMidi = nullptr;
+
+// Timing constants for USB host tasks
+static const TickType_t HOST_EVENT_TIMEOUT = 1;
+static const TickType_t CLIENT_EVENT_TIMEOUT = 1;
+
+// Forward declarations for callbacks
+static void clientEventCallback(const usb_host_client_event_msg_t* event_msg, void* arg);
+static void midiTransferCallback(usb_transfer_t* transfer);
+
+USBMidiHost::USBMidiHost()
+    : _clientHandle(nullptr)
+    , _deviceHandle(nullptr)
+    , _midiOut(nullptr)
+    , _isMidi(false)
+    , _isReady(false)
+    , _connected(false)
+    , _noteOnCb(nullptr)
+    , _noteOffCb(nullptr)
+    , _controlChangeCb(nullptr)
+    , _connectionCb(nullptr)
+{
+    memset(_midiIn, 0, sizeof(_midiIn));
+}
+
+void USBMidiHost::begin() {
+    // Install USB Host library
+    const usb_host_config_t hostConfig = {
+        .skip_phy_setup = false,
+        .intr_flags = ESP_INTR_FLAG_LEVEL1,
+    };
+
+    esp_err_t err = usb_host_install(&hostConfig);
+    if (err != ESP_OK) {
+        return;
+    }
+
+    // Register USB Host client
+    const usb_host_client_config_t clientConfig = {
+        .is_synchronous = false,
+        .max_num_event_msg = 5,
+        .async = {
+            .client_event_callback = clientEventCallback,
+            .callback_arg = this
+        }
+    };
+
+    err = usb_host_client_register(&clientConfig, &_clientHandle);
+    if (err != ESP_OK) {
+        usb_host_uninstall();
+        return;
+    }
+}
+
+void USBMidiHost::task() {
+    if (_clientHandle == nullptr) return;
+
+    // Handle USB host library events
+    uint32_t eventFlags;
+    esp_err_t err = usb_host_lib_handle_events(HOST_EVENT_TIMEOUT, &eventFlags);
+    if (err == ESP_OK) {
+        if (eventFlags & USB_HOST_LIB_EVENT_FLAGS_NO_CLIENTS) {
+            // All clients deregistered
+        }
+        if (eventFlags & USB_HOST_LIB_EVENT_FLAGS_ALL_FREE) {
+            // All devices freed
+        }
+    }
+
+    // Handle client events
+    err = usb_host_client_handle_events(_clientHandle, CLIENT_EVENT_TIMEOUT);
+    // ESP_ERR_TIMEOUT is expected when no events pending
+}
+
+bool USBMidiHost::isConnected() const {
+    return _connected;
+}
+
+bool USBMidiHost::isReady() const {
+    return _isReady;
+}
+
+void USBMidiHost::setNoteOnCallback(MidiNoteCallback cb) {
+    _noteOnCb = cb;
+}
+
+void USBMidiHost::setNoteOffCallback(MidiNoteCallback cb) {
+    _noteOffCb = cb;
+}
+
+void USBMidiHost::setControlChangeCallback(MidiControlChangeCallback cb) {
+    _controlChangeCb = cb;
+}
+
+void USBMidiHost::setConnectionCallback(MidiConnectionCallback cb) {
+    _connectionCb = cb;
+}
+
+void USBMidiHost::processMidiData(uint8_t* data, size_t length) {
+    // USB MIDI packets are 4 bytes each:
+    // [0] = Cable Number (upper nibble) | Code Index Number (lower nibble)
+    // [1] = MIDI Status byte
+    // [2] = MIDI Data byte 1
+    // [3] = MIDI Data byte 2
+
+    for (size_t i = 0; i + 4 <= length; i += 4) {
+        uint8_t cin = data[i] & 0x0F;      // Code Index Number
+        uint8_t status = data[i + 1];
+        uint8_t data1 = data[i + 2];
+        uint8_t data2 = data[i + 3];
+
+        // Skip empty packets
+        if (cin == 0 && status == 0) continue;
+
+        uint8_t msgType = status & 0xF0;
+        uint8_t channel = status & 0x0F;
+
+        switch (msgType) {
+            case 0x80:  // Note Off
+                if (_noteOffCb) {
+                    _noteOffCb(channel, data1, data2);
+                }
+                break;
+
+            case 0x90:  // Note On
+                if (data2 == 0) {
+                    // Velocity 0 = Note Off
+                    if (_noteOffCb) {
+                        _noteOffCb(channel, data1, 0);
+                    }
+                } else {
+                    if (_noteOnCb) {
+                        _noteOnCb(channel, data1, data2);
+                    }
+                }
+                break;
+
+            case 0xB0:  // Control Change
+                if (_controlChangeCb) {
+                    _controlChangeCb(channel, data1, data2);
+                }
+                break;
+
+            default:
+                // Other MIDI messages (Program Change, Pitch Bend, etc.)
+                break;
+        }
+    }
+}
+
+void USBMidiHost::onDeviceConnected(uint8_t address) {
+    esp_err_t err = usb_host_device_open(_clientHandle, address, &_deviceHandle);
+    if (err != ESP_OK) {
+        return;
+    }
+
+    // Get device descriptor
+    const usb_device_desc_t* deviceDesc;
+    err = usb_host_get_device_descriptor(_deviceHandle, &deviceDesc);
+
+    // Get configuration descriptor
+    const usb_config_desc_t* configDesc;
+    err = usb_host_get_active_config_descriptor(_deviceHandle, &configDesc);
+    if (err == ESP_OK) {
+        parseConfigDescriptor(configDesc);
+    }
+
+    _connected = true;
+    if (_connectionCb) {
+        _connectionCb(true);
+    }
+}
+
+void USBMidiHost::onDeviceDisconnected() {
+    // Free transfers
+    for (int i = 0; i < MIDI_IN_BUFFERS; i++) {
+        if (_midiIn[i] != nullptr) {
+            usb_host_transfer_free(_midiIn[i]);
+            _midiIn[i] = nullptr;
+        }
+    }
+    if (_midiOut != nullptr) {
+        usb_host_transfer_free(_midiOut);
+        _midiOut = nullptr;
+    }
+
+    // Close device
+    if (_deviceHandle != nullptr) {
+        usb_host_device_close(_clientHandle, _deviceHandle);
+        _deviceHandle = nullptr;
+    }
+
+    _isMidi = false;
+    _isReady = false;
+    _connected = false;
+
+    if (_connectionCb) {
+        _connectionCb(false);
+    }
+}
+
+void USBMidiHost::checkInterfaceDescriptor(const void* p) {
+    const usb_intf_desc_t* intf = (const usb_intf_desc_t*)p;
+
+    // USB MIDI class: Audio (0x01), MIDI Streaming subclass (0x03)
+    if (intf->bInterfaceClass == USB_CLASS_AUDIO &&
+        intf->bInterfaceSubClass == 3 &&
+        intf->bInterfaceProtocol == 0) {
+
+        _isMidi = true;
+
+        esp_err_t err = usb_host_interface_claim(
+            _clientHandle,
+            _deviceHandle,
+            intf->bInterfaceNumber,
+            intf->bAlternateSetting
+        );
+        (void)err;  // Ignore error for now
+    }
+}
+
+void USBMidiHost::prepareEndpoints(const void* p) {
+    const usb_ep_desc_t* endpoint = (const usb_ep_desc_t*)p;
+
+    // Must be bulk transfer type for MIDI
+    if ((endpoint->bmAttributes & USB_BM_ATTRIBUTES_XFERTYPE_MASK) != USB_BM_ATTRIBUTES_XFER_BULK) {
+        return;
+    }
+
+    esp_err_t err;
+
+    if (endpoint->bEndpointAddress & USB_B_ENDPOINT_ADDRESS_EP_DIR_MASK) {
+        // IN endpoint (device to host)
+        for (int i = 0; i < MIDI_IN_BUFFERS; i++) {
+            err = usb_host_transfer_alloc(endpoint->wMaxPacketSize, 0, &_midiIn[i]);
+            if (err != ESP_OK) {
+                _midiIn[i] = nullptr;
+                continue;
+            }
+
+            _midiIn[i]->device_handle = _deviceHandle;
+            _midiIn[i]->bEndpointAddress = endpoint->bEndpointAddress;
+            _midiIn[i]->callback = midiTransferCallback;
+            _midiIn[i]->context = this;
+            _midiIn[i]->num_bytes = endpoint->wMaxPacketSize;
+
+            err = usb_host_transfer_submit(_midiIn[i]);
+            if (err != ESP_OK) {
+                usb_host_transfer_free(_midiIn[i]);
+                _midiIn[i] = nullptr;
+            }
+        }
+    } else {
+        // OUT endpoint (host to device)
+        err = usb_host_transfer_alloc(endpoint->wMaxPacketSize, 0, &_midiOut);
+        if (err != ESP_OK) {
+            _midiOut = nullptr;
+            return;
+        }
+
+        _midiOut->device_handle = _deviceHandle;
+        _midiOut->bEndpointAddress = endpoint->bEndpointAddress;
+        _midiOut->callback = midiTransferCallback;
+        _midiOut->context = this;
+    }
+
+    // Ready when we have at least one IN and one OUT endpoint
+    _isReady = (_midiIn[0] != nullptr) && (_midiOut != nullptr);
+}
+
+void USBMidiHost::parseConfigDescriptor(const usb_config_desc_t* configDesc) {
+    const uint8_t* p = &configDesc->val[0];
+    uint8_t bLength;
+
+    for (int i = 0; i < configDesc->wTotalLength; i += bLength, p += bLength) {
+        bLength = *p;
+        if (bLength == 0) break;
+
+        if ((i + bLength) <= configDesc->wTotalLength) {
+            uint8_t bDescriptorType = *(p + 1);
+
+            switch (bDescriptorType) {
+                case USB_B_DESCRIPTOR_TYPE_INTERFACE:
+                    if (!_isMidi) {
+                        checkInterfaceDescriptor(p);
+                    }
+                    break;
+
+                case USB_B_DESCRIPTOR_TYPE_ENDPOINT:
+                    if (_isMidi && !_isReady) {
+                        prepareEndpoints(p);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+// ============== Static Callbacks ==============
+
+static void clientEventCallback(const usb_host_client_event_msg_t* event_msg, void* arg) {
+    USBMidiHost* host = static_cast<USBMidiHost*>(arg);
+
+    switch (event_msg->event) {
+        case USB_HOST_CLIENT_EVENT_NEW_DEV:
+            host->onDeviceConnected(event_msg->new_dev.address);
+            break;
+
+        case USB_HOST_CLIENT_EVENT_DEV_GONE:
+            host->onDeviceDisconnected();
+            break;
+
+        default:
+            break;
+    }
+}
+
+static void midiTransferCallback(usb_transfer_t* transfer) {
+    USBMidiHost* host = static_cast<USBMidiHost*>(transfer->context);
+
+    if (transfer->bEndpointAddress & USB_B_ENDPOINT_ADDRESS_EP_DIR_MASK) {
+        // IN transfer completed
+        if (transfer->status == USB_TRANSFER_STATUS_COMPLETED) {
+            if (transfer->actual_num_bytes > 0) {
+                host->processMidiData(transfer->data_buffer, transfer->actual_num_bytes);
+            }
+
+            // Re-submit the transfer to continue receiving
+            esp_err_t err = usb_host_transfer_submit(transfer);
+            (void)err;
+        }
+    } else {
+        // OUT transfer completed
+        // Could be used for sending MIDI to device
+    }
+}

@@ -38,11 +38,33 @@ export const de: TranslationKeys = {
   'play.mode.random': 'Zufall',
   'play.mode.randomDesc': 'Zufällige Farben für jede Taste',
 
+  // Demo mode
+  'play.demo.title': 'Demo-Wiedergabe',
+  'play.demo.selectSongHint': 'Wählen Sie ein Lied zur automatischen Wiedergabe auf dem LED-Streifen.',
+  'play.demo.chooseSong': 'Lied wählen',
+  'play.demo.changeSong': 'Ändern',
+  'play.demo.tempo': 'Tempo',
+
   // Split mode settings
   'play.split.title': 'Teilungseinstellungen',
   'play.split.splitPoint': 'Teilungspunkt',
   'play.split.leftColor': 'Linke Farbe',
   'play.split.rightColor': 'Rechte Farbe',
+
+  // Effects settings
+  'play.effects.title': 'Effekte',
+  'play.effects.background': 'Hintergrundbeleuchtung',
+  'play.effects.bgColor': 'Hintergrundfarbe',
+  'play.effects.bgBrightness': 'Hintergrundhelligkeit',
+  'play.effects.hueShift': 'Akkord-Farbverschiebung',
+  'play.effects.shiftAmount': 'Verschiebungsbetrag',
+
+  // Recording
+  'play.recording.title': 'Aufnahme',
+  'play.recording.start': 'Aufnahme starten',
+  'play.recording.stop': 'Aufnahme stoppen',
+  'play.recording.inProgress': 'Aufnahme...',
+  'play.recording.namePrompt': 'Aufnahmenamen eingeben',
 
   // MIDI sources
   'play.midi.title': 'MIDI-Eingang',

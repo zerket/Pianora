@@ -1,6 +1,7 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Midi, Track } from '@tonejs/midi';
 import * as Tone from 'tone';
+import { CONNECTION_SERVICE } from './connection.provider';
 
 export interface MidiNote {
   note: number;       // MIDI note number (0-127)
@@ -106,15 +107,32 @@ export class MidiPlayerService {
   });
 
   // Private properties
-  private synth: Tone.PolySynth | null = null;
+  private synth: Tone.Sampler | Tone.PolySynth | null = null;
   private animationFrameId: number | null = null;
   private startTime: number = 0;
   private pausedTime: number = 0;
+  private samplerLoaded = false;
+
+  // Piano samples from free CDN (Salamander Grand Piano)
+  // Note: Salamander uses 's' for sharps in filenames (e.g., Fs4.mp3 for F#4)
+  private readonly PIANO_SAMPLES_BASE = 'https://tonejs.github.io/audio/salamander/';
+
+  // Connection service for sending expected notes to firmware
+  private connectionService = inject(CONNECTION_SERVICE);
 
   constructor() {
     // Clean up on destroy
     effect(() => {
       return () => this.dispose();
+    });
+
+    // Send expected notes to firmware for LED hints in learning mode
+    effect(() => {
+      const expected = this.expectedNotes();
+      // Only send if we have a connection service with setExpectedNotes method
+      if (this.connectionService && typeof this.connectionService.setExpectedNotes === 'function') {
+        this.connectionService.setExpectedNotes(expected);
+      }
     });
   }
 
@@ -177,16 +195,9 @@ export class MidiPlayerService {
     // Initialize Tone.js if needed
     await Tone.start();
 
-    if (!this.synth) {
-      this.synth = new Tone.PolySynth(Tone.Synth, {
-        envelope: {
-          attack: 0.02,
-          decay: 0.1,
-          sustain: 0.3,
-          release: 0.5
-        }
-      }).toDestination();
-      this.synth.volume.value = -10;
+    // Initialize piano sampler if not already loaded
+    if (!this.synth || !this.samplerLoaded) {
+      await this.initPianoSampler();
     }
 
     if (this._isPaused()) {
@@ -200,6 +211,82 @@ export class MidiPlayerService {
 
     this._isPlaying.set(true);
     this.tick();
+  }
+
+  private async initPianoSampler(): Promise<void> {
+    return new Promise((resolve) => {
+      // Salamander Grand Piano sample mapping
+      // Uses 's' for sharps in filenames (Fs4.mp3 for F#4)
+      // Key = Tone.js note name, Value = filename
+      const samples: Record<string, string> = {
+        'A0': 'A0.mp3',
+        'C1': 'C1.mp3',
+        'D#1': 'Ds1.mp3',
+        'F#1': 'Fs1.mp3',
+        'A1': 'A1.mp3',
+        'C2': 'C2.mp3',
+        'D#2': 'Ds2.mp3',
+        'F#2': 'Fs2.mp3',
+        'A2': 'A2.mp3',
+        'C3': 'C3.mp3',
+        'D#3': 'Ds3.mp3',
+        'F#3': 'Fs3.mp3',
+        'A3': 'A3.mp3',
+        'C4': 'C4.mp3',
+        'D#4': 'Ds4.mp3',
+        'F#4': 'Fs4.mp3',
+        'A4': 'A4.mp3',
+        'C5': 'C5.mp3',
+        'D#5': 'Ds5.mp3',
+        'F#5': 'Fs5.mp3',
+        'A5': 'A5.mp3',
+        'C6': 'C6.mp3',
+        'D#6': 'Ds6.mp3',
+        'F#6': 'Fs6.mp3',
+        'A6': 'A6.mp3',
+        'C7': 'C7.mp3',
+        'D#7': 'Ds7.mp3',
+        'F#7': 'Fs7.mp3',
+        'A7': 'A7.mp3',
+        'C8': 'C8.mp3'
+      };
+
+      this.synth = new Tone.Sampler({
+        urls: samples,
+        baseUrl: this.PIANO_SAMPLES_BASE,
+        release: 1,
+        onload: () => {
+          this.samplerLoaded = true;
+          console.log('Piano samples loaded');
+          resolve();
+        },
+        onerror: (err) => {
+          console.error('Failed to load piano samples, using fallback synth:', err);
+          // Fallback to basic synth if samples fail to load
+          this.initFallbackSynth();
+          resolve();
+        }
+      }).toDestination();
+
+      this.synth.volume.value = -6;
+    });
+  }
+
+  private initFallbackSynth(): void {
+    // Fallback synth that sounds more piano-like
+    this.synth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: {
+        type: 'triangle8'
+      },
+      envelope: {
+        attack: 0.005,
+        decay: 0.3,
+        sustain: 0.2,
+        release: 1.2
+      }
+    }).toDestination();
+    this.synth.volume.value = -10;
+    this.samplerLoaded = true;
   }
 
   pause(): void {
@@ -325,9 +412,17 @@ export class MidiPlayerService {
     );
 
     for (const note of notesToPlay) {
-      const freq = Tone.Frequency(note.note, 'midi').toFrequency();
+      // Use note name for Sampler (e.g., 'C4'), frequency for PolySynth
+      const noteName = Tone.Frequency(note.note, 'midi').toNote();
       const velocity = note.velocity / 127;
-      this.synth.triggerAttackRelease(freq, note.duration, undefined, velocity);
+
+      try {
+        this.synth.triggerAttackRelease(noteName, note.duration, undefined, velocity);
+      } catch (err) {
+        // Fallback to frequency if note name fails
+        const freq = Tone.Frequency(note.note, 'midi').toFrequency();
+        this.synth.triggerAttackRelease(freq, note.duration, undefined, velocity);
+      }
     }
   }
 
@@ -337,6 +432,7 @@ export class MidiPlayerService {
     }
     this.synth?.dispose();
     this.synth = null;
+    this.samplerLoaded = false;
   }
 
   // Helper: Get note name from MIDI number

@@ -22,12 +22,11 @@ import { PianoVisualizerComponent } from '@shared/components/piano-visualizer/pi
         <div class="song-select-wrapper">
           <select
             class="song-select"
-            [value]="selectedSongId()"
             (change)="onSongSelect($event)"
           >
-            <option value="">-- {{ i18n.t('learn.selectSong') }} --</option>
+            <option value="" [selected]="!selectedSongId()">-- {{ i18n.t('learn.selectSong') }} --</option>
             @for (song of libraryService.allSongs(); track song.id) {
-              <option [value]="song.id">
+              <option [value]="song.id" [selected]="selectedSongId() === song.id">
                 {{ song.name }}{{ song.artist ? ' - ' + song.artist : '' }}
               </option>
             }
@@ -40,7 +39,7 @@ import { PianoVisualizerComponent } from '@shared/components/piano-visualizer/pi
         </div>
       </section>
 
-      <!-- Piano Visualizer -->
+      <!-- Piano Visualizer with Sheet Music -->
       <section class="visualizer-section">
         <app-piano-visualizer
           [mode]="'preview'"
@@ -48,8 +47,6 @@ import { PianoVisualizerComponent } from '@shared/components/piano-visualizer/pi
           [currentTime]="midiPlayer.currentTime()"
           [expectedNoteNumbers]="midiPlayer.expectedNotes()"
           [trackHands]="midiPlayer.trackHands()"
-          [measureDuration]="midiPlayer.currentSong()?.measureDuration ?? 2"
-          [lookahead]="4"
         />
       </section>
 
@@ -500,6 +497,25 @@ export class LearnComponent implements OnInit, OnDestroy {
         this.stopAnimationLoop();
       }
     });
+
+    // Watch for hotkey events from piano
+    effect(() => {
+      const hotkey = this.connectionService.lastHotkey();
+      if (hotkey && hotkey.action === 'play_pause') {
+        // Toggle play/pause if a song is loaded
+        if (this.midiPlayer.currentSong()) {
+          this.togglePlayPause();
+        }
+      }
+    });
+  }
+
+  private togglePlayPause(): void {
+    if (this.midiPlayer.isPlaying()) {
+      this.midiPlayer.pause();
+    } else {
+      this.midiPlayer.play();
+    }
   }
 
   ngOnInit(): void {

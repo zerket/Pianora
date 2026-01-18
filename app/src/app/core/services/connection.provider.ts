@@ -1,7 +1,10 @@
 import { InjectionToken, Provider } from '@angular/core';
 import { environment } from '@env/environment';
-import { ConnectionService } from './connection.service';
+import { ConnectionService, RecordingData, CalibrationStep, HotkeyEvent } from './connection.service';
 import { MockConnectionService } from './mock-connection.service';
+
+// Re-export types
+export type { RecordingData, CalibrationStep, HotkeyEvent } from './connection.service';
 
 /**
  * Interface for connection service (both real and mock implement this)
@@ -54,6 +57,20 @@ export interface IConnectionService {
   stopBleScan(): void;
   connectBleMidi(address: string): void;
   disconnectBleMidi(): void;
+
+  // Recording signals
+  isRecording: () => boolean;
+  recordingNotes: () => number;
+  recordingData: () => RecordingData | null;
+
+  // Calibration signals
+  calibrationStep: () => CalibrationStep | null;
+
+  // Hotkey signals
+  lastHotkey: () => HotkeyEvent | null;
+
+  // Learning mode
+  setExpectedNotes(notes: number[]): void;
 }
 
 /**
