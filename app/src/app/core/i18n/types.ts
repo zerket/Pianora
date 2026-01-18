@@ -21,6 +21,7 @@ export interface TranslationKeys {
   'nav.learn': string;
   'nav.library': string;
   'nav.settings': string;
+  'nav.help': string;
 
   // Status bar
   'status.connected': string;
@@ -230,4 +231,45 @@ export interface TranslationKeys {
   'common.confirmFactoryReset': string;
   'common.confirmFactoryResetFinal': string;
   'common.updateNotImplemented': string;
+
+  // Help page
+  'help.title': string;
+  'help.hotkeys.title': string;
+  'help.hotkeys.activation': string;
+  'help.hotkeys.modes': string;
+  'help.hotkeys.pointMode': string;
+  'help.hotkeys.splashMode': string;
+  'help.hotkeys.cycleMode': string;
+  'help.hotkeys.brightness': string;
+  'help.hotkeys.brightnessUp': string;
+  'help.hotkeys.brightnessDown': string;
+  'help.hotkeys.toggleLed': string;
+  'help.hotkeys.colors': string;
+  'help.hotkeys.colorRed': string;
+  'help.hotkeys.colorOrange': string;
+  'help.hotkeys.colorYellow': string;
+  'help.hotkeys.colorGreen': string;
+  'help.hotkeys.colorCyan': string;
+  'help.hotkeys.colorBlue': string;
+  'help.hotkeys.colorViolet': string;
+  'help.hotkeys.playback': string;
+  'help.hotkeys.playPause': string;
+  'help.modes.title': string;
+  'help.modes.freePlayDesc': string;
+  'help.modes.velocityDesc': string;
+  'help.modes.splitDesc': string;
+  'help.modes.randomDesc': string;
+  'help.modes.visualizerDesc': string;
+  'help.modes.ambientDesc': string;
+  'help.learning.title': string;
+  'help.learning.desc': string;
+  'help.learning.colorLegend': string;
+  'help.learning.guideColor': string;
+  'help.learning.successColor': string;
+  'help.learning.errorColor': string;
+  'help.tips.title': string;
+  'help.tips.tip1': string;
+  'help.tips.tip2': string;
+  'help.tips.tip3': string;
+  'help.tips.tip4': string;
 }

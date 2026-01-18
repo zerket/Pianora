@@ -1,6 +1,6 @@
 /**
- * Pianora Firmware v0.6.1 - TEST 10
- * USB MIDI + WebSocket + LittleFS Web App
+ * Pianora Firmware v0.7.0 - TEST 11
+ * USB MIDI + WebSocket + LittleFS + LED Controller + Hotkeys
  */
 
 #include <Arduino.h>
@@ -12,12 +12,10 @@
 #include <NimBLEDevice.h>
 #include <usb/usb_host.h>
 
-#define LED_PIN     18
-#define NUM_LEDS    176
-#define MIDI_IN_BUFFERS 4
+#include "led_controller.h"
+#include "../include/hotkey_handler.h"
 
-#define LOWEST_NOTE  21
-#define HIGHEST_NOTE 108
+#define MIDI_IN_BUFFERS 4
 
 // WiFi Configuration
 #define WIFI_STA_SSID     "RT-GPON-F060_EXT"
@@ -29,32 +27,6 @@
 
 bool wifiIsAP = false;
 
-// LED index lookup table for 88 keys (A0-C8, notes 21-108)
-// Index in array = note - 21 (keyIndex)
-// Value = LED index (0-175)
-// Pre-filled as keyIndex * 2, adjust manually as needed
-const uint8_t NOTE_TO_LED[88] = {
-    // Octave 0: A0, A#0, B0
-    0,    2,    4,
-    // Octave 1: C1, C#1, D1, D#1, E1, F1, F#1, G1, G#1, A1, A#1, B1
-    6,    8,   10,   12,   14,   16,   18,   20,   22,   24,   26,   28,
-    // Octave 2: C2, C#2, D2, D#2, E2, F2, F#2, G2, G#2, A2, A#2, B2
-    30,   32,   34,   36,   38,   40,   42,   44,   46,   48,   50,   52,
-    // Octave 3: C3, C#3, D3, D#3, E3, F3, F#3, G3, G#3, A3, A#3, B3
-    54,   56,   58,   60,   62,   64,   66,   68,   70,   72,   74,   76,
-    // Octave 4: C4, C#4, D4, D#4, E4, F4, F#4, G4, G#4, A4, A#4, B4
-    78,   80,   82,   84,   86,   88,   90,   92,   94,   96,   98,  99,
-    // Octave 5: C5, C#5, D5, D#5, E5, F5, F#5, G5, G#5, A5, A#5, B5
-    101,  103,  105,  107,  109,  111,  113,  115,  117,  119,  121,  123,
-    // Octave 6: C6, C#6, D6, D#6, E6, F6, F#6, G6, G#6, A6, A#6, B6
-    125,  127,  129,  131,  133,  135,  137,  139,  141,  143,  145,  147,
-    // Octave 7: C7, C#7, D7, D#7, E7, F7, F#7, G7, G#7, A7, A#7, B7
-    149,  151,  153,  155,  157,  159,  161,  163,  165,  167,  169,  171,
-    // Octave 8: C8
-    174
-};
-
-CRGB leds[NUM_LEDS];
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -68,21 +40,24 @@ uint16_t midiInMaxPacket = 64;
 bool usbDeviceConnected = false;
 bool usbMidiReady = false;
 
-// Note state
-bool noteState[128] = {false};
-uint8_t noteVelocity[128] = {0};
-
-// LED settings
-uint8_t ledBrightness = 50;
-
 // Forward declarations
 void onUsbDeviceConnected(uint8_t address);
 void onUsbDeviceDisconnected();
 void midiTransferCallback(usb_transfer_t* transfer);
 void processMidiPacket(uint8_t* data, size_t length);
-void noteOn(uint8_t note, uint8_t velocity);
-void noteOff(uint8_t note);
-int noteToLed(uint8_t note);
+
+// Hotkey callback
+void onHotkeyPlayPause() {
+    // Send play/pause command to connected clients
+    JsonDocument doc;
+    doc["type"] = "hotkey";
+    doc["payload"]["action"] = "play_pause";
+
+    String json;
+    serializeJson(doc, json);
+    ws.textAll(json);
+    Serial.println("Hotkey: Play/Pause");
+}
 
 // ============== WebSocket ==============
 
@@ -92,11 +67,14 @@ void sendStatusToClients() {
     JsonObject payload = doc["payload"].to<JsonObject>();
     payload["usb_connected"] = usbDeviceConnected;
     payload["usb_midi_ready"] = usbMidiReady;
-    payload["brightness"] = ledBrightness;
+    payload["brightness"] = ledController ? ledController->getBrightness() : 128;
+    payload["mode"] = ledController ? (int)ledController->getMode() : 0;
+    payload["hue"] = ledController ? ledController->getHue() : 0;
     payload["heap"] = ESP.getFreeHeap();
     payload["version"] = FW_VERSION;
     payload["wifi_mode"] = wifiIsAP ? "AP" : "STA";
     payload["ip"] = wifiIsAP ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
+    payload["led_count"] = NUM_LEDS;
 
     String json;
     serializeJson(doc, json);
@@ -133,14 +111,105 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                 JsonDocument doc;
                 if (!deserializeJson(doc, (char*)data)) {
                     const char* msgType = doc["type"];
+
                     if (msgType && strcmp(msgType, "get_status") == 0) {
                         sendStatusToClients();
                     }
                     else if (msgType && strcmp(msgType, "set_brightness") == 0) {
-                        ledBrightness = doc["payload"]["value"] | 50;
-                        FastLED.setBrightness(ledBrightness);
-                        FastLED.show();
+                        uint8_t brightness = doc["payload"]["value"] | 128;
+                        if (ledController) ledController->setBrightness(brightness);
                         sendStatusToClients();
+                    }
+                    else if (msgType && strcmp(msgType, "set_mode") == 0) {
+                        uint8_t mode = doc["payload"]["value"] | 0;
+                        if (ledController) ledController->setMode((LEDMode)mode);
+                        sendStatusToClients();
+                    }
+                    else if (msgType && strcmp(msgType, "set_hue") == 0) {
+                        uint8_t hue = doc["payload"]["value"] | 0;
+                        if (ledController) ledController->setHue(hue);
+                        sendStatusToClients();
+                    }
+                    else if (msgType && strcmp(msgType, "set_saturation") == 0) {
+                        uint8_t sat = doc["payload"]["value"] | 255;
+                        if (ledController) ledController->setSaturation(sat);
+                    }
+                    else if (msgType && strcmp(msgType, "set_fade_rate") == 0) {
+                        uint8_t rate = doc["payload"]["value"] | 15;
+                        if (ledController) ledController->setFadeRate(rate);
+                    }
+                    else if (msgType && strcmp(msgType, "set_splash") == 0) {
+                        bool enabled = doc["payload"]["enabled"] | false;
+                        if (ledController) ledController->setSplashEnabled(enabled);
+                    }
+                    else if (msgType && strcmp(msgType, "set_expected_notes") == 0) {
+                        // Learning mode - set expected notes
+                        JsonArray notes = doc["payload"]["notes"];
+                        if (ledController && notes) {
+                            uint8_t noteArray[10];
+                            uint8_t count = 0;
+                            for (JsonVariant v : notes) {
+                                if (count < 10) {
+                                    noteArray[count++] = v.as<uint8_t>();
+                                }
+                            }
+                            ledController->setExpectedNotes(noteArray, count);
+                        }
+                    }
+                    else if (msgType && strcmp(msgType, "clear_expected_notes") == 0) {
+                        if (ledController) ledController->clearExpectedNotes();
+                    }
+                    else if (msgType && strcmp(msgType, "set_split") == 0) {
+                        uint8_t pos = doc["payload"]["position"] | 44;
+                        if (ledController) ledController->setSplitPosition(pos);
+
+                        if (doc["payload"].containsKey("left_hue")) {
+                            uint8_t h = doc["payload"]["left_hue"];
+                            uint8_t s = doc["payload"]["left_sat"] | 255;
+                            uint8_t v = doc["payload"]["left_val"] | 255;
+                            ledController->setLeftColor(h, s, v);
+                        }
+                        if (doc["payload"].containsKey("right_hue")) {
+                            uint8_t h = doc["payload"]["right_hue"];
+                            uint8_t s = doc["payload"]["right_sat"] | 255;
+                            uint8_t v = doc["payload"]["right_val"] | 255;
+                            ledController->setRightColor(h, s, v);
+                        }
+                    }
+                    else if (msgType && strcmp(msgType, "set_background") == 0) {
+                        bool enabled = doc["payload"]["enabled"] | false;
+                        if (ledController) {
+                            ledController->setBackgroundEnabled(enabled);
+                            if (doc["payload"].containsKey("hue")) {
+                                uint8_t h = doc["payload"]["hue"];
+                                uint8_t s = doc["payload"]["sat"] | 255;
+                                uint8_t v = doc["payload"]["val"] | 32;
+                                ledController->setBackgroundColor(h, s, v);
+                            }
+                            if (doc["payload"].containsKey("brightness")) {
+                                ledController->setBackgroundBrightness(doc["payload"]["brightness"]);
+                            }
+                        }
+                    }
+                    else if (msgType && strcmp(msgType, "set_hue_shift") == 0) {
+                        bool enabled = doc["payload"]["enabled"] | false;
+                        if (ledController) {
+                            ledController->setHueShiftEnabled(enabled);
+                            if (doc["payload"].containsKey("amount")) {
+                                ledController->setHueShiftAmount(doc["payload"]["amount"]);
+                            }
+                            if (doc["payload"].containsKey("window_ms")) {
+                                ledController->setChordWindowMs(doc["payload"]["window_ms"]);
+                            }
+                        }
+                    }
+                    else if (msgType && strcmp(msgType, "set_ambient") == 0) {
+                        uint8_t anim = doc["payload"]["animation"] | 0;
+                        uint8_t speed = doc["payload"]["speed"] | 50;
+                        if (ledController) {
+                            ledController->setAmbientAnimation(anim);
+                            ledController->setAnimationSpeed(speed);
+                        }
                     }
                 }
             }
@@ -187,48 +256,34 @@ void processMidiPacket(uint8_t* data, size_t length) {
         uint8_t msgType = status & 0xF0;
 
         if (msgType == 0x90 && velocity > 0) {
-            noteOn(note, velocity);
+            // Note On
+            if (hotkeyHandler) {
+                hotkeyHandler->noteOn(note, velocity);
+                if (hotkeyHandler->checkHotkey()) {
+                    // Hotkey activated, don't process as normal note
+                    continue;
+                }
+            }
+
+            if (ledController) {
+                ledController->noteOn(note, velocity);
+            }
+            sendNoteToClients(note, velocity, true);
+            Serial.printf("Note ON:  %3d vel=%3d\n", note, velocity);
+
         } else if (msgType == 0x80 || (msgType == 0x90 && velocity == 0)) {
-            noteOff(note);
+            // Note Off
+            if (hotkeyHandler) {
+                hotkeyHandler->noteOff(note);
+            }
+
+            if (ledController) {
+                ledController->noteOff(note);
+            }
+            sendNoteToClients(note, 0, false);
+            Serial.printf("Note OFF: %3d\n", note);
         }
     }
-}
-
-// ============== LED Control ==============
-
-int noteToLed(uint8_t note) {
-    if (note < LOWEST_NOTE || note > HIGHEST_NOTE) return -1;
-    int keyIndex = note - LOWEST_NOTE;  // 0-87
-    return NOTE_TO_LED[keyIndex];
-}
-
-void noteOn(uint8_t note, uint8_t velocity) {
-    noteState[note] = true;
-    noteVelocity[note] = velocity;
-
-    int led = noteToLed(note);
-    if (led >= 0 && led < NUM_LEDS) {
-        uint8_t hue = map(velocity, 1, 127, 160, 0);
-        leds[led] = CHSV(hue, 255, 255);
-        FastLED.show();
-    }
-
-    sendNoteToClients(note, velocity, true);
-    Serial.printf("Note ON:  %3d vel=%3d\n", note, velocity);
-}
-
-void noteOff(uint8_t note) {
-    noteState[note] = false;
-    noteVelocity[note] = 0;
-
-    int led = noteToLed(note);
-    if (led >= 0 && led < NUM_LEDS) {
-        leds[led] = CRGB::Black;
-        FastLED.show();
-    }
-
-    sendNoteToClients(note, 0, false);
-    Serial.printf("Note OFF: %3d\n", note);
 }
 
 // ============== USB Device Handling ==============
@@ -326,8 +381,7 @@ void onUsbDeviceConnected(uint8_t address) {
     usbMidiReady = true;
     usbDeviceConnected = true;
 
-    fill_solid(leds, NUM_LEDS, CRGB::Black);
-    FastLED.show();
+    if (ledController) ledController->blackout();
     Serial.println("USB: MIDI ready!");
     sendStatusToClients();
 }
@@ -351,8 +405,7 @@ void onUsbDeviceDisconnected() {
     usbDeviceConnected = false;
     midiInEndpoint = 0;
 
-    fill_solid(leds, NUM_LEDS, CRGB::Green);
-    FastLED.show();
+    if (ledController) ledController->showColor(CRGB::Green);
     sendStatusToClients();
 }
 
@@ -363,27 +416,28 @@ void setup() {
     delay(2000);
 
     Serial.println("\n\n========================================");
-    Serial.printf("  Pianora TEST 10 - USB MIDI + LittleFS\n");
+    Serial.printf("  Pianora TEST 11 - Full Features\n");
     Serial.println("========================================\n");
 
-    // 1. FastLED
-    Serial.print("1. FastLED... ");
-    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-    FastLED.setBrightness(ledBrightness);
-    fill_solid(leds, NUM_LEDS, CRGB::Yellow);
-    FastLED.show();
+    // 1. LED Controller
+    Serial.print("1. LED Controller... ");
+    ledController = new LEDController();
+    ledController->begin();
     Serial.println("OK");
 
-    // 2. NimBLE (init only, no scanning)
-    Serial.print("2. NimBLE... ");
+    // 2. Hotkey Handler
+    Serial.print("2. Hotkey Handler... ");
+    hotkeyHandler = new HotkeyHandler();
+    Serial.println("OK");
+
+    // 3. NimBLE (init only)
+    Serial.print("3. NimBLE... ");
     NimBLEDevice::init("Pianora");
-    fill_solid(leds, NUM_LEDS, CRGB::Orange);
-    FastLED.show();
     Serial.println("OK");
 
-    // 3. LittleFS
-    Serial.print("3. LittleFS... ");
-    if (!LittleFS.begin(false)) {  // false = don't format if mount fails
+    // 4. LittleFS
+    Serial.print("4. LittleFS... ");
+    if (!LittleFS.begin(false)) {
         Serial.println("Mount failed, formatting...");
         if (!LittleFS.begin(true)) {
             Serial.println("FAIL even after format!");
@@ -391,28 +445,8 @@ void setup() {
     }
     Serial.printf("OK (Total: %u, Used: %u)\n", LittleFS.totalBytes(), LittleFS.usedBytes());
 
-    // List root directory
-    Serial.println("   Files in LittleFS:");
-    File root = LittleFS.open("/");
-    if (root && root.isDirectory()) {
-        File file = root.openNextFile();
-        int count = 0;
-        while (file && count < 20) {
-            Serial.printf("   - %s (%d bytes)\n", file.name(), file.size());
-            file = root.openNextFile();
-            count++;
-        }
-        if (count == 0) {
-            Serial.println("   (empty)");
-        } else if (count >= 20) {
-            Serial.println("   ... (more files)");
-        }
-    } else {
-        Serial.println("   (failed to open root)");
-    }
-
-    // 4. WiFi - try Station first, fallback to AP
-    Serial.println("4. WiFi Setup...");
+    // 5. WiFi - try Station first, fallback to AP
+    Serial.println("5. WiFi Setup...");
     WiFi.mode(WIFI_STA);
 
     bool connected = false;
@@ -427,9 +461,6 @@ void setup() {
                (millis() - startTime) < WIFI_CONNECT_TIMEOUT_MS) {
             delay(500);
             Serial.print(".");
-            // Blink purple while connecting
-            fill_solid(leds, NUM_LEDS, (millis() / 500) % 2 ? CRGB::Purple : CRGB::Black);
-            FastLED.show();
         }
         Serial.println();
 
@@ -444,23 +475,18 @@ void setup() {
 
     if (connected) {
         wifiIsAP = false;
-        fill_solid(leds, NUM_LEDS, CRGB::Blue);
-        FastLED.show();
         Serial.printf("   Connected! IP: %s\n", WiFi.localIP().toString().c_str());
     } else {
-        // Fallback to AP mode
         Serial.println("   Starting AP mode...");
         WiFi.mode(WIFI_AP);
         WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
         wifiIsAP = true;
-        fill_solid(leds, NUM_LEDS, CRGB::Purple);
-        FastLED.show();
         Serial.printf("   AP started: %s / %s\n", WIFI_AP_SSID, WIFI_AP_PASSWORD);
         Serial.printf("   IP: %s\n", WiFi.softAPIP().toString().c_str());
     }
 
-    // 5. WebSocket + WebServer
-    Serial.print("5. WebSocket + WebServer... ");
+    // 6. WebSocket + WebServer
+    Serial.print("6. WebSocket + WebServer... ");
     ws.onEvent(onWsEvent);
     server.addHandler(&ws);
 
@@ -469,11 +495,13 @@ void setup() {
         JsonDocument doc;
         doc["usb_connected"] = usbDeviceConnected;
         doc["usb_midi_ready"] = usbMidiReady;
-        doc["brightness"] = ledBrightness;
+        doc["brightness"] = ledController ? ledController->getBrightness() : 128;
+        doc["mode"] = ledController ? (int)ledController->getMode() : 0;
         doc["heap"] = ESP.getFreeHeap();
         doc["version"] = FW_VERSION;
         doc["wifi_mode"] = wifiIsAP ? "AP" : "STA";
         doc["ip"] = wifiIsAP ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
+        doc["led_count"] = NUM_LEDS;
 
         String json;
         serializeJson(doc, json);
@@ -483,27 +511,19 @@ void setup() {
     // Serve static files from LittleFS
     server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
-    // SPA fallback - serve index.html for non-file requests
+    // SPA fallback
     server.onNotFound([](AsyncWebServerRequest* request) {
-        // If it's an API request, return 404
         if (request->url().startsWith("/api/")) {
             request->send(404, "application/json", "{\"error\":\"Not found\"}");
             return;
         }
 
-        // For SPA routes, serve index.html
         if (LittleFS.exists("/index.html")) {
             request->send(LittleFS, "/index.html", "text/html");
         } else {
-            // Fallback if LittleFS is empty or index.html missing
             String html = "<html><head><title>Pianora</title></head><body>";
-            html += "<h1>Pianora TEST 10</h1>";
+            html += "<h1>Pianora TEST 11</h1>";
             html += "<p>LittleFS: index.html not found</p>";
-            html += "<p>USB: " + String(usbDeviceConnected ? "Connected" : "Not connected") + "</p>";
-            html += "<p>USB MIDI: " + String(usbMidiReady ? "Ready" : "Not ready") + "</p>";
-            html += "<p>Heap: " + String(ESP.getFreeHeap()) + "</p>";
-            html += "<p>WiFi: " + String(wifiIsAP ? "AP Mode" : "Station Mode") + "</p>";
-            html += "<p><a href='/api/status'>API Status</a></p>";
             html += "</body></html>";
             request->send(200, "text/html", html);
         }
@@ -512,8 +532,8 @@ void setup() {
     server.begin();
     Serial.println("OK");
 
-    // 6. USB Host
-    Serial.print("6. USB Host... ");
+    // 7. USB Host
+    Serial.print("7. USB Host... ");
     const usb_host_config_t hostConfig = {
         .skip_phy_setup = false,
         .intr_flags = ESP_INTR_FLAG_LEVEL1,
@@ -540,9 +560,8 @@ void setup() {
         }
     }
 
-    // Done
-    fill_solid(leds, NUM_LEDS, CRGB::Green);
-    FastLED.show();
+    // Startup animation (ends with blackout)
+    ledController->playStartupAnimation();
 
     Serial.println("\n========================================");
     Serial.println("  READY!");
@@ -553,6 +572,7 @@ void setup() {
         Serial.printf("  WiFi: Connected to %s\n", WIFI_STA_SSID);
         Serial.printf("  Web: http://%s\n", WiFi.localIP().toString().c_str());
     }
+    Serial.printf("  LEDs: %d\n", NUM_LEDS);
     Serial.printf("  Free Heap: %u\n", ESP.getFreeHeap());
     Serial.println("========================================\n");
 }
@@ -561,7 +581,6 @@ void setup() {
 
 void loop() {
     static uint32_t lastPrint = 0;
-    static uint8_t hue = 0;
 
     // USB Host task
     if (usbClientHandle != nullptr) {
@@ -570,14 +589,13 @@ void loop() {
         usb_host_client_handle_events(usbClientHandle, 0);
     }
 
+    // LED Controller update (for fading, animations, etc.)
+    if (ledController) {
+        ledController->update();
+    }
+
     // WebSocket cleanup
     ws.cleanupClients();
-
-    // Rainbow when waiting
-    if (!usbMidiReady) {
-        fill_rainbow(leds, NUM_LEDS, hue++, 2);
-        FastLED.show();
-    }
 
     // Status print
     if (millis() - lastPrint >= 10000) {
@@ -588,5 +606,5 @@ void loop() {
             usbMidiReady ? "Ready" : "No");
     }
 
-    delay(10);
+    delay(5);
 }

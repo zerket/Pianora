@@ -10,7 +10,7 @@
 #define NUM_LEDS            176     // 88 keys * 2 LEDs per key
 #define NUM_PIANO_KEYS      88
 #define LEDS_PER_KEY        2
-#define LED_BRIGHTNESS      128     // Default brightness (0-255)
+#define LED_BRIGHTNESS      76      // Default brightness 30% (0-255)
 #define LED_MAX_POWER_MW    5000    // Max power in milliwatts
 
 // ============== MIDI Configuration ==============
@@ -38,7 +38,7 @@ enum LEDMode {
 };
 
 // ============== Default Settings ==============
-#define DEFAULT_BRIGHTNESS  128     // 50% - safe for eyes
+#define DEFAULT_BRIGHTNESS  76      // 30% - comfortable for eyes
 #define DEFAULT_HUE         0       // White/neutral
 #define DEFAULT_SATURATION  0       // White (no color) for default
 

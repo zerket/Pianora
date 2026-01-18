@@ -3,9 +3,9 @@
 
 #include <Arduino.h>
 
-// Activation notes (both must be pressed)
-#define HOTKEY_A1 33
-#define HOTKEY_B1 35
+// Activation notes (both must be pressed) - A0 and B0
+#define HOTKEY_A0 21
+#define HOTKEY_B0 23
 
 // Mode selection notes
 #define HOTKEY_POINT_MODE  48  // C3 - Point mode (single LED per key)

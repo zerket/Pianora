@@ -5,7 +5,7 @@ import { I18nService } from '@core/services/i18n.service';
 
 interface NavItem {
   path: string;
-  labelKey: 'nav.play' | 'nav.learn' | 'nav.library' | 'nav.settings';
+  labelKey: 'nav.play' | 'nav.learn' | 'nav.library' | 'nav.settings' | 'nav.help';
   icon: string;
 }
 
@@ -82,6 +82,7 @@ export class NavbarComponent {
     { path: '/play', labelKey: 'nav.play', icon: '🎹' },
     { path: '/learn', labelKey: 'nav.learn', icon: '📚' },
     { path: '/library', labelKey: 'nav.library', icon: '🎵' },
-    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' }
+    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
+    { path: '/help', labelKey: 'nav.help', icon: '❓' }
   ];
 }

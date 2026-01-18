@@ -27,6 +27,11 @@ export const routes: Routes = [
     title: 'Settings - Piano LED'
   },
   {
+    path: 'help',
+    loadComponent: () => import('@features/help/help.component').then(m => m.HelpComponent),
+    title: 'Help - Piano LED'
+  },
+  {
     path: 'calibration',
     loadComponent: () => import('@features/settings/calibration/calibration.component').then(m => m.CalibrationComponent),
     title: 'Calibration - Piano LED'

@@ -40,6 +40,8 @@ public:
     void blackout();
     void showColor(CRGB color);
     void playStartupAnimation();  // Rainbow wave on boot
+    void setLedDirect(uint16_t index, CRGB color);  // Direct LED access
+    int16_t noteToLed(uint8_t note);  // Map MIDI note to LED index
 
     // Splash mode
     void setSplashEnabled(bool enabled);
