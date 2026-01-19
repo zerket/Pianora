@@ -31,6 +31,10 @@ public:
     void setSaturation(uint8_t saturation);
     void setFadeRate(uint8_t rate);
 
+    // LED strip direction
+    void setReversed(bool reversed);
+    bool isReversed() const;
+
     // Split mode colors
     void setSplitPosition(uint8_t position);  // 0-87 (key index)
     void setLeftColor(uint8_t hue, uint8_t sat, uint8_t val);
@@ -90,6 +94,7 @@ private:
     uint8_t _hue;
     uint8_t _saturation;
     uint8_t _fadeRate;
+    bool _reversed;  // LED strip direction
 
     // Split mode settings
     uint8_t _splitPosition;

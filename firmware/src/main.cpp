@@ -160,34 +160,51 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                         if (ledController) ledController->clearExpectedNotes();
                     }
                     else if (msgType && strcmp(msgType, "set_split") == 0) {
-                        uint8_t pos = doc["payload"]["position"] | 44;
-                        if (ledController) ledController->setSplitPosition(pos);
+                        // Support both camelCase (Angular) and snake_case naming
+                        JsonObject payload = doc["payload"];
 
-                        if (doc["payload"].containsKey("left_hue")) {
-                            uint8_t h = doc["payload"]["left_hue"];
-                            uint8_t s = doc["payload"]["left_sat"] | 255;
-                            uint8_t v = doc["payload"]["left_val"] | 255;
-                            ledController->setLeftColor(h, s, v);
+                        // Split position: accept "splitPoint" or "position"
+                        if (payload.containsKey("splitPoint")) {
+                            if (ledController) ledController->setSplitPosition(payload["splitPoint"]);
+                        } else if (payload.containsKey("position")) {
+                            if (ledController) ledController->setSplitPosition(payload["position"]);
                         }
-                        if (doc["payload"].containsKey("right_hue")) {
-                            uint8_t h = doc["payload"]["right_hue"];
-                            uint8_t s = doc["payload"]["right_sat"] | 255;
-                            uint8_t v = doc["payload"]["right_val"] | 255;
-                            ledController->setRightColor(h, s, v);
+
+                        // Left color: accept "leftHue/leftSat" or "left_hue/left_sat"
+                        if (payload.containsKey("leftHue") || payload.containsKey("left_hue")) {
+                            uint8_t h = payload.containsKey("leftHue") ? (uint8_t)payload["leftHue"] : (uint8_t)payload["left_hue"];
+                            uint8_t s = payload.containsKey("leftSat") ? (uint8_t)payload["leftSat"] :
+                                       (payload.containsKey("left_sat") ? (uint8_t)payload["left_sat"] : 255);
+                            uint8_t v = payload.containsKey("leftVal") ? (uint8_t)payload["leftVal"] :
+                                       (payload.containsKey("left_val") ? (uint8_t)payload["left_val"] : 255);
+                            if (ledController) ledController->setLeftColor(h, s, v);
+                        }
+
+                        // Right color: accept "rightHue/rightSat" or "right_hue/right_sat"
+                        if (payload.containsKey("rightHue") || payload.containsKey("right_hue")) {
+                            uint8_t h = payload.containsKey("rightHue") ? (uint8_t)payload["rightHue"] : (uint8_t)payload["right_hue"];
+                            uint8_t s = payload.containsKey("rightSat") ? (uint8_t)payload["rightSat"] :
+                                       (payload.containsKey("right_sat") ? (uint8_t)payload["right_sat"] : 255);
+                            uint8_t v = payload.containsKey("rightVal") ? (uint8_t)payload["rightVal"] :
+                                       (payload.containsKey("right_val") ? (uint8_t)payload["right_val"] : 255);
+                            if (ledController) ledController->setRightColor(h, s, v);
                         }
                     }
                     else if (msgType && strcmp(msgType, "set_background") == 0) {
-                        bool enabled = doc["payload"]["enabled"] | false;
+                        JsonObject payload = doc["payload"];
+                        bool enabled = payload["enabled"] | false;
                         if (ledController) {
                             ledController->setBackgroundEnabled(enabled);
-                            if (doc["payload"].containsKey("hue")) {
-                                uint8_t h = doc["payload"]["hue"];
-                                uint8_t s = doc["payload"]["sat"] | 255;
-                                uint8_t v = doc["payload"]["val"] | 32;
+                            if (payload.containsKey("hue")) {
+                                uint8_t h = payload["hue"];
+                                // Accept "saturation" (Angular) or "sat" (legacy)
+                                uint8_t s = payload.containsKey("saturation") ? (uint8_t)payload["saturation"] :
+                                           (payload.containsKey("sat") ? (uint8_t)payload["sat"] : 255);
+                                uint8_t v = payload.containsKey("val") ? (uint8_t)payload["val"] : 32;
                                 ledController->setBackgroundColor(h, s, v);
                             }
-                            if (doc["payload"].containsKey("brightness")) {
-                                ledController->setBackgroundBrightness(doc["payload"]["brightness"]);
+                            if (payload.containsKey("brightness")) {
+                                ledController->setBackgroundBrightness(payload["brightness"]);
                             }
                         }
                     }
@@ -210,6 +227,84 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                             ledController->setAmbientAnimation(anim);
                             ledController->setAnimationSpeed(speed);
                         }
+                    }
+                    // Universal settings handler - accepts multiple parameters at once
+                    else if (msgType && strcmp(msgType, "set_settings") == 0) {
+                        JsonObject payload = doc["payload"];
+                        if (ledController && !payload.isNull()) {
+                            // Brightness (0-255)
+                            if (payload.containsKey("brightness")) {
+                                ledController->setBrightness(payload["brightness"]);
+                            }
+                            // Hue (0-255)
+                            if (payload.containsKey("hue")) {
+                                ledController->setHue(payload["hue"]);
+                            }
+                            // Saturation (0-255)
+                            if (payload.containsKey("saturation")) {
+                                ledController->setSaturation(payload["saturation"]);
+                            }
+                            // Fade rate (0-255)
+                            if (payload.containsKey("fadeRate")) {
+                                ledController->setFadeRate(payload["fadeRate"]);
+                            }
+                            // Splash/wave effect
+                            if (payload.containsKey("splashEnabled")) {
+                                ledController->setSplashEnabled(payload["splashEnabled"]);
+                            }
+                            // Mode (0-8)
+                            if (payload.containsKey("mode")) {
+                                ledController->setMode((LEDMode)(uint8_t)payload["mode"]);
+                            }
+                            // Color as RGB array [r, g, b] - convert to HSV
+                            if (payload.containsKey("color")) {
+                                JsonArray color = payload["color"];
+                                if (color && color.size() >= 3) {
+                                    uint8_t r = color[0];
+                                    uint8_t g = color[1];
+                                    uint8_t b = color[2];
+                                    // Convert RGB to HSV and set hue/saturation
+                                    CRGB rgb(r, g, b);
+                                    CHSV hsv = rgb2hsv_approximate(rgb);
+                                    ledController->setHue(hsv.hue);
+                                    ledController->setSaturation(hsv.sat);
+                                }
+                            }
+                            // Split settings
+                            if (payload.containsKey("splitPoint")) {
+                                ledController->setSplitPosition(payload["splitPoint"]);
+                            }
+                            if (payload.containsKey("splitLeftColor")) {
+                                JsonArray c = payload["splitLeftColor"];
+                                if (c && c.size() >= 3) {
+                                    CRGB rgb(c[0], c[1], c[2]);
+                                    CHSV hsv = rgb2hsv_approximate(rgb);
+                                    ledController->setLeftColor(hsv.hue, hsv.sat, hsv.val);
+                                }
+                            }
+                            if (payload.containsKey("splitRightColor")) {
+                                JsonArray c = payload["splitRightColor"];
+                                if (c && c.size() >= 3) {
+                                    CRGB rgb(c[0], c[1], c[2]);
+                                    CHSV hsv = rgb2hsv_approximate(rgb);
+                                    ledController->setRightColor(hsv.hue, hsv.sat, hsv.val);
+                                }
+                            }
+                        }
+                        sendStatusToClients();
+                    }
+                    // LED configuration (count, direction)
+                    else if (msgType && strcmp(msgType, "set_led_config") == 0) {
+                        JsonObject payload = doc["payload"];
+                        if (ledController && !payload.isNull()) {
+                            if (payload.containsKey("reversed")) {
+                                ledController->setReversed(payload["reversed"]);
+                            }
+                            if (payload.containsKey("brightness")) {
+                                ledController->setBrightness(payload["brightness"]);
+                            }
+                        }
+                        sendStatusToClients();
                     }
                 }
             }

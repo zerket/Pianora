@@ -32,6 +32,7 @@ LEDController::LEDController()
     , _hue(0)
     , _saturation(255)  // Revert to original value
     , _fadeRate(15)
+    , _reversed(false)  // Normal direction by default
     , _splitPosition(44)  // Middle of keyboard
     , _leftColor(0, 255, 255)    // Red
     , _rightColor(160, 255, 255) // Cyan
@@ -207,6 +208,14 @@ void LEDController::setFadeRate(uint8_t rate) {
     _fadeRate = rate;
 }
 
+void LEDController::setReversed(bool reversed) {
+    _reversed = reversed;
+}
+
+bool LEDController::isReversed() const {
+    return _reversed;
+}
+
 void LEDController::setSplitPosition(uint8_t position) {
     if (position < NUM_PIANO_KEYS) {
         _splitPosition = position;
@@ -299,7 +308,12 @@ int16_t LEDController::noteToLed(uint8_t note) {
     // Map MIDI note to LED index using calibrated lookup table
     if (note < LOWEST_MIDI_NOTE || note > HIGHEST_MIDI_NOTE) return -1;
     uint8_t keyIndex = note - LOWEST_MIDI_NOTE;  // 0-87
-    return NOTE_TO_LED[keyIndex];
+    int16_t ledIndex = NOTE_TO_LED[keyIndex];
+    // Reverse if needed
+    if (_reversed && ledIndex >= 0) {
+        ledIndex = NUM_LEDS - 1 - ledIndex;
+    }
+    return ledIndex;
 }
 
 CRGB LEDController::getColorForKey(uint8_t keyIndex, uint8_t velocity) {

@@ -567,6 +567,9 @@ export class SettingsComponent {
   // BLE MIDI state
   selectedBleDevice = signal('');
 
+  // Track if initial load is done to avoid sending on first load
+  private initialLoadDone = false;
+
   constructor() {
     // Watch for WiFi status changes
     effect(() => {
@@ -589,6 +592,32 @@ export class SettingsComponent {
       // If scan just finished and exactly one device was found, auto-select it
       if (!isScanning && devices.length === 1 && !this.selectedBleDevice()) {
         this.selectedBleDevice.set(devices[0].address);
+      }
+    });
+
+    // Load initial LED settings from controller status
+    effect(() => {
+      const status = this.connectionService.status();
+      if (status && !this.initialLoadDone) {
+        // Initialize from controller if available
+        if (status.brightness !== undefined) {
+          this.defaultBrightness.set(status.brightness);
+        }
+        this.initialLoadDone = true;
+      }
+    });
+
+    // Send LED config changes to controller (debounced)
+    effect(() => {
+      const reversed = this.ledReversed();
+      const brightness = this.defaultBrightness();
+
+      // Only send after initial load
+      if (this.initialLoadDone && this.connectionService.connected()) {
+        this.connectionService.send('set_led_config', {
+          reversed,
+          brightness
+        });
       }
     });
   }
