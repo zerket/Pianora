@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
 
 import { CONNECTION_SERVICE } from '@core/services/connection.provider';
 import { NavbarComponent } from '@shared/components/navbar/navbar.component';
@@ -12,15 +13,19 @@ import { DebugPanelComponent } from '@shared/components/debug-panel/debug-panel.
   standalone: true,
   imports: [CommonModule, RouterOutlet, NavbarComponent, StatusBarComponent, DebugPanelComponent],
   template: `
-    <div class="app-container">
-      <app-status-bar />
+    <div class="app-container" [class.onboarding-mode]="isOnboarding()">
+      @if (!isOnboarding()) {
+        <app-status-bar />
+      }
 
-      <main class="main-content">
+      <main class="main-content" [class.full-height]="isOnboarding()">
         <router-outlet />
       </main>
 
-      <app-navbar />
-      <app-debug-panel />
+      @if (!isOnboarding()) {
+        <app-navbar />
+        <app-debug-panel />
+      }
     </div>
   `,
   styles: [`
@@ -38,12 +43,38 @@ import { DebugPanelComponent } from '@shared/components/debug-panel/debug-panel.
       padding-bottom: calc(60px + var(--spacing-md) + env(safe-area-inset-bottom));
       overflow-y: auto;
     }
+
+    .main-content.full-height {
+      padding: 0;
+      padding-bottom: 0;
+    }
+
+    .onboarding-mode .main-content {
+      padding: 0;
+    }
   `]
 })
 export class AppComponent implements OnInit {
   private connectionService = inject(CONNECTION_SERVICE);
+  private router = inject(Router);
+
+  currentRoute = signal<string>('');
+  isOnboarding = computed(() => this.currentRoute().includes('onboarding'));
 
   ngOnInit(): void {
+    // Check if onboarding is needed
+    const onboardingCompleted = localStorage.getItem('pianora_onboarding_completed') === 'true';
+    if (!onboardingCompleted && !window.location.pathname.includes('onboarding')) {
+      this.router.navigate(['/onboarding']);
+    }
+
+    // Track current route
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+    ).subscribe(event => {
+      this.currentRoute.set(event.urlAfterRedirects);
+    });
+
     // Auto-connect to controller
     this.connectionService.connect();
   }

@@ -217,6 +217,28 @@ export const en: TranslationKeys = {
   'common.confirmFactoryResetFinal': 'This action cannot be undone. Continue?',
   'common.updateNotImplemented': 'Update check not implemented yet',
 
+  // Onboarding
+  'onboarding.welcomeTitle': 'Welcome to Pianora!',
+  'onboarding.welcomeSubtitle': 'LED visualization for your digital piano',
+  'onboarding.getStarted': 'Get Started',
+  'onboarding.connectTitle': 'Connect Your Piano',
+  'onboarding.connectDesc': 'Connect your digital piano to the controller via USB cable.',
+  'onboarding.pianoConnected': 'Piano connected!',
+  'onboarding.waitingForPiano': 'Waiting for piano...',
+  'onboarding.continue': 'Continue',
+  'onboarding.skipForNow': 'Skip for now',
+  'onboarding.testTitle': 'Test Your Setup',
+  'onboarding.testDesc': 'Press any key on your piano to see the LEDs light up.',
+  'onboarding.notePressed': 'Note pressed',
+  'onboarding.pressAnyKey': 'Press any key...',
+  'onboarding.looksGood': 'Looks Good!',
+  'onboarding.back': 'Back',
+  'onboarding.doneTitle': 'You\'re All Set!',
+  'onboarding.doneDesc': 'Your Pianora is ready. What would you like to do?',
+  'onboarding.actionPlay': 'Play',
+  'onboarding.actionLearn': 'Learn',
+  'onboarding.actionSettings': 'Settings',
+
   // Help page
   'help.title': 'Help & Reference',
   'help.hotkeys.title': 'Piano Hotkeys',

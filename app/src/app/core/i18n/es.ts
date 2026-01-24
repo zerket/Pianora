@@ -217,6 +217,28 @@ export const es: TranslationKeys = {
   'common.confirmFactoryResetFinal': 'Esta acción no se puede deshacer. ¿Continuar?',
   'common.updateNotImplemented': 'Verificación de actualizaciones aún no implementada',
 
+  // Onboarding
+  'onboarding.welcomeTitle': '¡Bienvenido a Pianora!',
+  'onboarding.welcomeSubtitle': 'Visualización LED para tu piano digital',
+  'onboarding.getStarted': 'Comenzar',
+  'onboarding.connectTitle': 'Conecta tu piano',
+  'onboarding.connectDesc': 'Conecta tu piano digital al controlador mediante cable USB.',
+  'onboarding.pianoConnected': '¡Piano conectado!',
+  'onboarding.waitingForPiano': 'Esperando piano...',
+  'onboarding.continue': 'Continuar',
+  'onboarding.skipForNow': 'Omitir por ahora',
+  'onboarding.testTitle': 'Prueba tu configuración',
+  'onboarding.testDesc': 'Presiona cualquier tecla del piano para ver los LEDs iluminarse.',
+  'onboarding.notePressed': 'Nota presionada',
+  'onboarding.pressAnyKey': 'Presiona cualquier tecla...',
+  'onboarding.looksGood': '¡Se ve bien!',
+  'onboarding.back': 'Atrás',
+  'onboarding.doneTitle': '¡Todo listo!',
+  'onboarding.doneDesc': 'Tu Pianora está listo. ¿Qué te gustaría hacer?',
+  'onboarding.actionPlay': 'Tocar',
+  'onboarding.actionLearn': 'Aprender',
+  'onboarding.actionSettings': 'Ajustes',
+
   // Help page
   'help.title': 'Ayuda y Referencia',
   'help.hotkeys.title': 'Atajos del Piano',

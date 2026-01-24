@@ -217,6 +217,28 @@ export const ru: TranslationKeys = {
   'common.confirmFactoryResetFinal': 'Это действие нельзя отменить. Продолжить?',
   'common.updateNotImplemented': 'Проверка обновлений пока не реализована',
 
+  // Onboarding
+  'onboarding.welcomeTitle': 'Добро пожаловать в Pianora!',
+  'onboarding.welcomeSubtitle': 'LED-визуализация для цифрового пианино',
+  'onboarding.getStarted': 'Начать',
+  'onboarding.connectTitle': 'Подключите пианино',
+  'onboarding.connectDesc': 'Подключите цифровое пианино к контроллеру через USB-кабель.',
+  'onboarding.pianoConnected': 'Пианино подключено!',
+  'onboarding.waitingForPiano': 'Ожидание пианино...',
+  'onboarding.continue': 'Продолжить',
+  'onboarding.skipForNow': 'Пропустить',
+  'onboarding.testTitle': 'Проверка настройки',
+  'onboarding.testDesc': 'Нажмите любую клавишу на пианино, чтобы увидеть подсветку.',
+  'onboarding.notePressed': 'Нажата нота',
+  'onboarding.pressAnyKey': 'Нажмите любую клавишу...',
+  'onboarding.looksGood': 'Отлично!',
+  'onboarding.back': 'Назад',
+  'onboarding.doneTitle': 'Всё готово!',
+  'onboarding.doneDesc': 'Ваш Pianora настроен. Что хотите сделать?',
+  'onboarding.actionPlay': 'Играть',
+  'onboarding.actionLearn': 'Учиться',
+  'onboarding.actionSettings': 'Настройки',
+
   // Help page
   'help.title': 'Справочник',
   'help.hotkeys.title': 'Горячие клавиши на пианино',

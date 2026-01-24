@@ -7,6 +7,11 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'onboarding',
+    loadComponent: () => import('@features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
+    title: 'Welcome - Pianora'
+  },
+  {
     path: 'play',
     loadComponent: () => import('@features/play/play.component').then(m => m.PlayComponent),
     title: 'Play - Piano LED'

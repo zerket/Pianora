@@ -232,6 +232,28 @@ export interface TranslationKeys {
   'common.confirmFactoryResetFinal': string;
   'common.updateNotImplemented': string;
 
+  // Onboarding
+  'onboarding.welcomeTitle': string;
+  'onboarding.welcomeSubtitle': string;
+  'onboarding.getStarted': string;
+  'onboarding.connectTitle': string;
+  'onboarding.connectDesc': string;
+  'onboarding.pianoConnected': string;
+  'onboarding.waitingForPiano': string;
+  'onboarding.continue': string;
+  'onboarding.skipForNow': string;
+  'onboarding.testTitle': string;
+  'onboarding.testDesc': string;
+  'onboarding.notePressed': string;
+  'onboarding.pressAnyKey': string;
+  'onboarding.looksGood': string;
+  'onboarding.back': string;
+  'onboarding.doneTitle': string;
+  'onboarding.doneDesc': string;
+  'onboarding.actionPlay': string;
+  'onboarding.actionLearn': string;
+  'onboarding.actionSettings': string;
+
   // Help page
   'help.title': string;
   'help.hotkeys.title': string;

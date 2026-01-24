@@ -217,6 +217,28 @@ export const de: TranslationKeys = {
   'common.confirmFactoryResetFinal': 'Diese Aktion kann nicht rückgängig gemacht werden. Fortfahren?',
   'common.updateNotImplemented': 'Update-Prüfung noch nicht implementiert',
 
+  // Onboarding
+  'onboarding.welcomeTitle': 'Willkommen bei Pianora!',
+  'onboarding.welcomeSubtitle': 'LED-Visualisierung für Ihr Digitalpiano',
+  'onboarding.getStarted': 'Los geht\'s',
+  'onboarding.connectTitle': 'Klavier verbinden',
+  'onboarding.connectDesc': 'Verbinden Sie Ihr Digitalpiano über USB-Kabel mit dem Controller.',
+  'onboarding.pianoConnected': 'Klavier verbunden!',
+  'onboarding.waitingForPiano': 'Warte auf Klavier...',
+  'onboarding.continue': 'Weiter',
+  'onboarding.skipForNow': 'Überspringen',
+  'onboarding.testTitle': 'Setup testen',
+  'onboarding.testDesc': 'Drücken Sie eine beliebige Taste, um die LED-Beleuchtung zu sehen.',
+  'onboarding.notePressed': 'Gedrückte Note',
+  'onboarding.pressAnyKey': 'Drücken Sie eine Taste...',
+  'onboarding.looksGood': 'Sieht gut aus!',
+  'onboarding.back': 'Zurück',
+  'onboarding.doneTitle': 'Alles fertig!',
+  'onboarding.doneDesc': 'Ihr Pianora ist bereit. Was möchten Sie tun?',
+  'onboarding.actionPlay': 'Spielen',
+  'onboarding.actionLearn': 'Lernen',
+  'onboarding.actionSettings': 'Einstellungen',
+
   // Help page
   'help.title': 'Hilfe & Referenz',
   'help.hotkeys.title': 'Klavier-Hotkeys',

@@ -217,6 +217,28 @@ export const fr: TranslationKeys = {
   'common.confirmFactoryResetFinal': 'Cette action est irréversible. Continuer ?',
   'common.updateNotImplemented': 'Vérification des mises à jour pas encore implémentée',
 
+  // Onboarding
+  'onboarding.welcomeTitle': 'Bienvenue sur Pianora !',
+  'onboarding.welcomeSubtitle': 'Visualisation LED pour votre piano numérique',
+  'onboarding.getStarted': 'Commencer',
+  'onboarding.connectTitle': 'Connectez votre piano',
+  'onboarding.connectDesc': 'Connectez votre piano numérique au contrôleur via câble USB.',
+  'onboarding.pianoConnected': 'Piano connecté !',
+  'onboarding.waitingForPiano': 'En attente du piano...',
+  'onboarding.continue': 'Continuer',
+  'onboarding.skipForNow': 'Passer pour l\'instant',
+  'onboarding.testTitle': 'Testez votre installation',
+  'onboarding.testDesc': 'Appuyez sur n\'importe quelle touche pour voir les LEDs s\'allumer.',
+  'onboarding.notePressed': 'Note jouée',
+  'onboarding.pressAnyKey': 'Appuyez sur une touche...',
+  'onboarding.looksGood': 'C\'est parfait !',
+  'onboarding.back': 'Retour',
+  'onboarding.doneTitle': 'Tout est prêt !',
+  'onboarding.doneDesc': 'Votre Pianora est configuré. Que souhaitez-vous faire ?',
+  'onboarding.actionPlay': 'Jouer',
+  'onboarding.actionLearn': 'Apprendre',
+  'onboarding.actionSettings': 'Paramètres',
+
   // Help page
   'help.title': 'Aide et Référence',
   'help.hotkeys.title': 'Raccourcis Clavier Piano',
