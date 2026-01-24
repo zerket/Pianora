@@ -7,16 +7,18 @@
 #define HOTKEY_A0 21
 #define HOTKEY_B0 23
 
-// Mode selection notes
-#define HOTKEY_POINT_MODE  48  // C3 - Point mode (single LED per key)
-#define HOTKEY_SPLASH_MODE 50  // D3 - Splash mode (spreading light)
+// Mode selection notes (C3-G3)
+#define HOTKEY_POINT_MODE    48  // C3 - Точечный режим (один LED на клавишу)
+#define HOTKEY_SPLASH_MODE   50  // D3 - Волна (растекающийся свет)
+#define HOTKEY_RANDOM_MODE   52  // E3 - Случайные цвета
+#define HOTKEY_VELOCITY_MODE 53  // F3 - Цвет зависит от силы нажатия
+#define HOTKEY_RAINBOW_MODE  55  // G3 - Радуга (градиент A0-C8)
 
-// Control hotkeys (E3-B3)
-#define HOTKEY_BRIGHTNESS_UP    52  // E3 - Increase brightness
-#define HOTKEY_BRIGHTNESS_DOWN  53  // F3 - Decrease brightness
-#define HOTKEY_MODE_CYCLE       55  // G3 - Cycle through modes
-#define HOTKEY_TOGGLE_LED       57  // A3 - Toggle LED on/off
-#define HOTKEY_PLAY_PAUSE       59  // B3 - Play/pause (learning mode)
+// Control hotkeys
+#define HOTKEY_BRIGHTNESS_UP    49  // C#3 - Увеличить яркость
+#define HOTKEY_BRIGHTNESS_DOWN  51  // D#3 - Уменьшить яркость
+#define HOTKEY_TOGGLE_LED       57  // A3 - Включить/выключить LED
+#define HOTKEY_PLAY_PAUSE       59  // B3 - Play/pause (режим обучения)
 
 // Color selection notes (C4-B4 for 7 rainbow colors)
 #define HOTKEY_COLOR_C4 60  // Red
@@ -63,6 +65,7 @@ private:
     void executeHotkey(uint8_t actionNote);
     uint8_t getHueForNote(uint8_t note);
     void flashConfirmation();
+    void flashBrightnessLevel();  // Показать уровень яркости (0-20 диодов)
 };
 
 extern HotkeyHandler* hotkeyHandler;

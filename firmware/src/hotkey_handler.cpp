@@ -98,6 +98,24 @@ void HotkeyHandler::flashConfirmation() {
     ledController->blackout();
 }
 
+void HotkeyHandler::flashBrightnessLevel() {
+    // Показать уровень яркости количеством диодов (0-20)
+    // 100% = 20 диодов, 5% = 1 диод, 0% = 0 диодов
+    uint8_t brightness = ledController->getBrightness();
+
+    // Вычисляем количество диодов: brightness / 255 * 20
+    uint8_t ledCount = (brightness * 20 + 127) / 255;  // Округление
+    if (brightness > 0 && ledCount == 0) ledCount = 1;  // Минимум 1 диод если яркость > 0
+
+    ledController->blackout();
+    for (uint8_t i = 0; i < ledCount; i++) {
+        ledController->setLedDirect(i, CHSV(96, 255, 76));  // Зелёный, 30% яркости
+    }
+    FastLED.show();
+    delay(200);
+    ledController->blackout();
+}
+
 void HotkeyHandler::executeHotkey(uint8_t actionNote) {
     switch (actionNote) {
         case HOTKEY_POINT_MODE:
@@ -115,20 +133,35 @@ void HotkeyHandler::executeHotkey(uint8_t actionNote) {
             break;
 
         case HOTKEY_BRIGHTNESS_UP:
-            // Increase brightness by 25
-            ledController->adjustBrightness(25);
-            flashConfirmation();
+            // Увеличить яркость на 5% (13 из 255)
+            ledController->adjustBrightness(13);
+            flashBrightnessLevel();
             break;
 
         case HOTKEY_BRIGHTNESS_DOWN:
-            // Decrease brightness by 25
-            ledController->adjustBrightness(-25);
+            // Уменьшить яркость на 5% (13 из 255)
+            ledController->adjustBrightness(-13);
+            flashBrightnessLevel();
+            break;
+
+        case HOTKEY_RANDOM_MODE:
+            // Режим случайных цветов
+            ledController->setMode(MODE_RANDOM);
+            ledController->setSplashEnabled(false);
             flashConfirmation();
             break;
 
-        case HOTKEY_MODE_CYCLE:
-            // Cycle through LED modes
-            ledController->cycleMode();
+        case HOTKEY_VELOCITY_MODE:
+            // Режим velocity - цвет зависит от силы нажатия
+            ledController->setMode(MODE_VELOCITY);
+            ledController->setSplashEnabled(false);
+            flashConfirmation();
+            break;
+
+        case HOTKEY_RAINBOW_MODE:
+            // Режим радуга - градиент от A0 до C8
+            ledController->setMode(MODE_VISUALIZER);
+            ledController->setSplashEnabled(false);
             flashConfirmation();
             break;
 

@@ -267,6 +267,19 @@ void LEDController::playStartupAnimation() {
     blackout();
 }
 
+void LEDController::flashDisconnect() {
+    // Тускло вспыхнуть чётными диодами один раз при отключении USB
+    blackout();
+
+    // Зажигаем только чётные диоды (0, 2, 4, 6...) с тусклой яркостью
+    for (uint16_t i = 0; i < NUM_LEDS; i += 2) {
+        _leds[i] = CHSV(0, 0, 40);  // Белый цвет, ~15% яркости
+    }
+    FastLED.show();
+    delay(150);
+    blackout();
+}
+
 // ============== Private Methods ==============
 
 uint8_t LEDController::mapNoteToKeyIndex(uint8_t midiNote) {

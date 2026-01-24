@@ -500,7 +500,7 @@ void onUsbDeviceDisconnected() {
     usbDeviceConnected = false;
     midiInEndpoint = 0;
 
-    if (ledController) ledController->showColor(CRGB::Green);
+    if (ledController) ledController->flashDisconnect();
     sendStatusToClients();
 }
 
