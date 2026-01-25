@@ -15,8 +15,11 @@
 #define HOTKEY_RAINBOW_MODE  55  // G3 - Радуга (градиент A0-C8)
 
 // Control hotkeys
-#define HOTKEY_BRIGHTNESS_UP    49  // C#3 - Увеличить яркость
-#define HOTKEY_BRIGHTNESS_DOWN  51  // D#3 - Уменьшить яркость
+#define HOTKEY_BRIGHTNESS_DOWN  49  // C#3 - Уменьшить яркость
+#define HOTKEY_BRIGHTNESS_UP    51  // D#3 - Увеличить яркость
+#define HOTKEY_WAVE_VELOCITY    54  // F#3 - Переключить Wave Velocity on/off
+#define HOTKEY_WAVE_WIDTH_DEC   56  // G#3 - Уменьшить ширину волны
+#define HOTKEY_WAVE_WIDTH_INC   58  // A#3 - Увеличить ширину волны
 #define HOTKEY_TOGGLE_LED       57  // A3 - Включить/выключить LED
 #define HOTKEY_PLAY_PAUSE       59  // B3 - Play/pause (режим обучения)
 
@@ -66,6 +69,7 @@ private:
     uint8_t getHueForNote(uint8_t note);
     void flashConfirmation();
     void flashBrightnessLevel();  // Показать уровень яркости (0-20 диодов)
+    void flashWaveWidth();        // Показать ширину волны (1-6 диодов)
 };
 
 extern HotkeyHandler* hotkeyHandler;

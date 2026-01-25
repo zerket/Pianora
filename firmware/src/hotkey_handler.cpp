@@ -116,6 +116,19 @@ void HotkeyHandler::flashBrightnessLevel() {
     ledController->blackout();
 }
 
+void HotkeyHandler::flashWaveWidth() {
+    // Показать ширину волны количеством диодов (1-6)
+    uint8_t width = ledController->getWaveStaticWidth();
+
+    ledController->blackout();
+    for (uint8_t i = 0; i < width; i++) {
+        ledController->setLedDirect(i, CHSV(160, 255, 76));  // Голубой, 30% яркости
+    }
+    FastLED.show();
+    delay(200);
+    ledController->blackout();
+}
+
 void HotkeyHandler::executeHotkey(uint8_t actionNote) {
     switch (actionNote) {
         case HOTKEY_POINT_MODE:
@@ -163,6 +176,24 @@ void HotkeyHandler::executeHotkey(uint8_t actionNote) {
             ledController->setMode(MODE_VISUALIZER);
             ledController->setSplashEnabled(false);
             flashConfirmation();
+            break;
+
+        case HOTKEY_WAVE_VELOCITY:
+            // Переключить Wave Velocity режим
+            ledController->setWaveVelocityMode(!ledController->isWaveVelocityMode());
+            flashConfirmation();
+            break;
+
+        case HOTKEY_WAVE_WIDTH_DEC:
+            // Уменьшить ширину волны
+            ledController->adjustWaveWidth(-1);
+            flashWaveWidth();
+            break;
+
+        case HOTKEY_WAVE_WIDTH_INC:
+            // Увеличить ширину волны
+            ledController->adjustWaveWidth(1);
+            flashWaveWidth();
             break;
 
         case HOTKEY_TOGGLE_LED:

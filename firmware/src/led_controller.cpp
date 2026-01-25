@@ -50,6 +50,8 @@ LEDController::LEDController()
     , _lastNoteTime(0)
     , _currentChordHue(160)       // Start with base hue
     , _splashEnabled(false)
+    , _waveVelocityMode(false)
+    , _waveStaticWidth(3)
     , _lastFadeTime(0)
     , _ambientAnimation(0)     // Default: Rainbow
     , _animationSpeed(50)      // Medium speed
@@ -292,22 +294,11 @@ uint8_t LEDController::mapNoteToKeyIndex(uint8_t midiNote) {
 void LEDController::setKeyLEDs(uint8_t keyIndex, CRGB color) {
     if (keyIndex >= NUM_PIANO_KEYS) return;
 
-    // Point mode (splash disabled): only 1 LED per key using noteToLed formula
-    // Splash mode: LEDS_PER_KEY LEDs per key
-    if (!_splashEnabled) {
-        // Point mode - use the original noteToLed mapping (odd indices: 1, 3, 5...)
-        int16_t ledIndex = noteToLed(keyIndex + LOWEST_MIDI_NOTE);
-        if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
-            _leds[ledIndex] = color;
-        }
-    } else {
-        // Splash mode - light up LEDS_PER_KEY LEDs
-        uint16_t startLED = keyIndex * LEDS_PER_KEY;
-        for (uint8_t i = 0; i < LEDS_PER_KEY; i++) {
-            if (startLED + i < NUM_LEDS) {
-                _leds[startLED + i] = color;
-            }
-        }
+    // Используем noteToLed() для единообразного маппинга в обоих режимах
+    // В splash режиме волна расходится от этой точки через updateSplash()
+    int16_t ledIndex = noteToLed(keyIndex + LOWEST_MIDI_NOTE);
+    if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
+        _leds[ledIndex] = color;
     }
 }
 
@@ -423,28 +414,39 @@ void LEDController::fade() {
         targetColor = CHSV(_bgColor.h, _bgColor.s, _bgBrightness);
     }
 
-    for (uint8_t key = 0; key < NUM_PIANO_KEYS; key++) {
-        if (!_keysOn[key]) {
-            if (!_splashEnabled) {
-                // Point mode - fade only the single LED
+    if (_splashEnabled) {
+        // В splash режиме затухаем ВСЕ диоды равномерно (волна использует диоды вне маппинга)
+        // Пропускаем только диоды нажатых клавиш
+        for (uint16_t i = 0; i < NUM_LEDS; i++) {
+            // Проверяем, принадлежит ли диод нажатой клавише
+            bool isKeyLed = false;
+            for (uint8_t key = 0; key < NUM_PIANO_KEYS; key++) {
+                if (_keysOn[key]) {
+                    int16_t keyLed = noteToLed(key + LOWEST_MIDI_NOTE);
+                    if (keyLed == (int16_t)i) {
+                        isKeyLed = true;
+                        break;
+                    }
+                }
+            }
+            if (!isKeyLed) {
+                if (_bgEnabled) {
+                    _leds[i] = nblend(_leds[i], targetColor, _fadeRate);
+                } else {
+                    _leds[i].fadeToBlackBy(_fadeRate);
+                }
+            }
+        }
+    } else {
+        // Point режим - затухаем только диоды клавиш через маппинг
+        for (uint8_t key = 0; key < NUM_PIANO_KEYS; key++) {
+            if (!_keysOn[key]) {
                 int16_t ledIndex = noteToLed(key + LOWEST_MIDI_NOTE);
                 if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
                     if (_bgEnabled) {
                         _leds[ledIndex] = nblend(_leds[ledIndex], targetColor, _fadeRate);
                     } else {
                         _leds[ledIndex].fadeToBlackBy(_fadeRate);
-                    }
-                }
-            } else {
-                // Splash mode - fade LEDS_PER_KEY LEDs
-                uint16_t startLED = key * LEDS_PER_KEY;
-                for (uint8_t i = 0; i < LEDS_PER_KEY; i++) {
-                    if (startLED + i < NUM_LEDS) {
-                        if (_bgEnabled) {
-                            _leds[startLED + i] = nblend(_leds[startLED + i], targetColor, _fadeRate);
-                        } else {
-                            _leds[startLED + i].fadeToBlackBy(_fadeRate);
-                        }
                     }
                 }
             }
@@ -466,10 +468,39 @@ bool LEDController::isSplashEnabled() const {
     return _splashEnabled;
 }
 
+void LEDController::setWaveVelocityMode(bool enabled) {
+    _waveVelocityMode = enabled;
+}
+
+bool LEDController::isWaveVelocityMode() const {
+    return _waveVelocityMode;
+}
+
+void LEDController::setWaveStaticWidth(uint8_t width) {
+    _waveStaticWidth = constrain(width, 1, 6);
+}
+
+uint8_t LEDController::getWaveStaticWidth() const {
+    return _waveStaticWidth;
+}
+
+void LEDController::adjustWaveWidth(int8_t delta) {
+    int8_t newWidth = _waveStaticWidth + delta;
+    setWaveStaticWidth(newWidth);
+}
+
 uint8_t LEDController::velocityToSplashWidth(uint8_t velocity) {
-    // Soft (1-42) = 3 LEDs, Medium (43-84) = 4 LEDs, Hard (85-127) = 6 LEDs
-    if (velocity <= 42) return 3;
-    if (velocity <= 84) return 4;
+    // Static mode: return fixed width
+    if (!_waveVelocityMode) {
+        return _waveStaticWidth;
+    }
+
+    // Velocity mode: 6 groups based on velocity
+    if (velocity <= 20) return 1;
+    if (velocity <= 40) return 2;
+    if (velocity <= 60) return 3;
+    if (velocity <= 80) return 4;
+    if (velocity <= 100) return 5;
     return 6;
 }
 
@@ -507,8 +538,9 @@ void LEDController::updateSplash() {
             continue;
         }
 
-        // Calculate center LED position
-        uint16_t centerLED = splash.centerKey * LEDS_PER_KEY + LEDS_PER_KEY / 2;
+        // Calculate center LED position using noteToLed (like point mode)
+        int16_t centerLED = noteToLed(splash.centerKey + LOWEST_MIDI_NOTE);
+        if (centerLED < 0) continue;
 
         // Draw splash: center brightest, edges dimmer
         for (int8_t offset = -(int8_t)splash.width; offset <= (int8_t)splash.width; offset++) {

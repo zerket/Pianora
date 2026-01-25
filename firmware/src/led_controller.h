@@ -52,6 +52,13 @@ public:
     void setSplashEnabled(bool enabled);
     bool isSplashEnabled() const;
 
+    // Wave mode settings
+    void setWaveVelocityMode(bool enabled);
+    bool isWaveVelocityMode() const;
+    void setWaveStaticWidth(uint8_t width);
+    uint8_t getWaveStaticWidth() const;
+    void adjustWaveWidth(int8_t delta);
+
     // Hotkey controls
     void adjustBrightness(int16_t delta);  // +/- brightness
     void cycleMode();                       // Cycle through modes
@@ -137,6 +144,10 @@ private:
     static const uint8_t MAX_SPLASHES = 16;
     SplashEffect _splashes[MAX_SPLASHES];
     bool _splashEnabled;
+
+    // Wave mode settings
+    bool _waveVelocityMode;     // true = velocity-based width, false = static width
+    uint8_t _waveStaticWidth;   // 1-6 для static режима
 
     // Timing
     unsigned long _lastFadeTime;
