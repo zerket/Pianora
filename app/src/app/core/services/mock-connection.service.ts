@@ -177,6 +177,17 @@ export class MockConnectionService {
     console.log('[MOCK] Setting expected notes:', notes);
   }
 
+  // LED playback (Demo/Learning)
+  playNote(note: number, velocity: number, on: boolean): void {
+    console.log('[MOCK] Play note:', note, velocity, on);
+    // В mock режиме также обновляем activeNotes для визуализации
+    if (on && velocity > 0) {
+      this.simulateNoteOn(note, velocity);
+    } else {
+      this.simulateNoteOff(note);
+    }
+  }
+
   // WiFi methods
   scanWifi(): void {
     console.log('[MOCK] Scanning WiFi networks');

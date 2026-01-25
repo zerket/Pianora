@@ -71,6 +71,9 @@ export interface IConnectionService {
 
   // Learning mode
   setExpectedNotes(notes: number[]): void;
+
+  // LED playback (Demo/Learning)
+  playNote(note: number, velocity: number, on: boolean): void;
 }
 
 /**

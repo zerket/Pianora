@@ -261,7 +261,9 @@ export interface TranslationKeys {
   'help.hotkeys.modes': string;
   'help.hotkeys.pointMode': string;
   'help.hotkeys.splashMode': string;
-  'help.hotkeys.cycleMode': string;
+  'help.hotkeys.randomMode': string;
+  'help.hotkeys.velocityMode': string;
+  'help.hotkeys.rainbowMode': string;
   'help.hotkeys.brightness': string;
   'help.hotkeys.brightnessUp': string;
   'help.hotkeys.brightnessDown': string;

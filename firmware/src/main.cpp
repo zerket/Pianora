@@ -51,7 +51,8 @@ void onHotkeyPlayPause() {
     // Send play/pause command to connected clients
     JsonDocument doc;
     doc["type"] = "hotkey";
-    doc["payload"]["action"] = "play_pause";
+    // Angular ожидает данные напрямую, без вложенного payload
+    doc["action"] = "play_pause";
 
     String json;
     serializeJson(doc, json);
@@ -64,17 +65,33 @@ void onHotkeyPlayPause() {
 void sendStatusToClients() {
     JsonDocument doc;
     doc["type"] = "status";
-    JsonObject payload = doc["payload"].to<JsonObject>();
-    payload["usb_connected"] = usbDeviceConnected;
-    payload["usb_midi_ready"] = usbMidiReady;
-    payload["brightness"] = ledController ? ledController->getBrightness() : 128;
-    payload["mode"] = ledController ? (int)ledController->getMode() : 0;
-    payload["hue"] = ledController ? ledController->getHue() : 0;
-    payload["heap"] = ESP.getFreeHeap();
-    payload["version"] = FW_VERSION;
-    payload["wifi_mode"] = wifiIsAP ? "AP" : "STA";
-    payload["ip"] = wifiIsAP ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
-    payload["led_count"] = NUM_LEDS;
+    // Angular ожидает данные напрямую, без вложенного payload
+    doc["version"] = FW_VERSION;
+    doc["midi_connected"] = usbMidiReady;  // Angular ожидает midi_connected
+    doc["ble_connected"] = false;  // TODO: реализовать BLE MIDI
+    doc["mode"] = ledController ? (int)ledController->getMode() : 0;
+    doc["brightness"] = ledController ? ledController->getBrightness() : 128;
+    doc["calibrated"] = true;  // TODO: реализовать калибровку
+    doc["ws_clients"] = ws.count();
+    doc["free_heap"] = ESP.getFreeHeap();
+    doc["is_recording"] = false;  // TODO: реализовать запись
+    doc["recording_notes"] = 0;
+
+    // WiFi информация
+    JsonObject wifi = doc["wifi"].to<JsonObject>();
+    wifi["mode"] = wifiIsAP ? "ap" : "sta";
+    wifi["apIp"] = WiFi.softAPIP().toString();
+    wifi["apSSID"] = WIFI_AP_SSID;
+    wifi["staConnected"] = !wifiIsAP && WiFi.status() == WL_CONNECTED;
+    wifi["staSSID"] = wifiIsAP ? "" : WIFI_STA_SSID;
+    wifi["staIP"] = wifiIsAP ? "" : WiFi.localIP().toString();
+    wifi["rssi"] = wifiIsAP ? 0 : WiFi.RSSI();
+
+    // Функции устройства
+    JsonObject features = doc["features"].to<JsonObject>();
+    features["elegant_ota"] = false;  // TODO: добавить OTA
+    features["ble_midi"] = true;
+    features["wifi_sta"] = true;
 
     String json;
     serializeJson(doc, json);
@@ -84,10 +101,10 @@ void sendStatusToClients() {
 void sendNoteToClients(uint8_t note, uint8_t velocity, bool isOn) {
     JsonDocument doc;
     doc["type"] = "midi_note";
-    JsonObject payload = doc["payload"].to<JsonObject>();
-    payload["note"] = note;
-    payload["velocity"] = velocity;
-    payload["on"] = isOn;
+    // Angular ожидает данные напрямую, без вложенного payload
+    doc["note"] = note;
+    doc["velocity"] = velocity;
+    doc["on"] = isOn;
 
     String json;
     serializeJson(doc, json);
@@ -121,7 +138,11 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                         sendStatusToClients();
                     }
                     else if (msgType && strcmp(msgType, "set_mode") == 0) {
-                        uint8_t mode = doc["payload"]["value"] | 0;
+                        // Поддержка обоих форматов: { mode } и { value }
+                        JsonObject payload = doc["payload"];
+                        uint8_t mode = payload.containsKey("mode")
+                            ? (uint8_t)payload["mode"]
+                            : (uint8_t)(payload["value"] | 0);
                         if (ledController) ledController->setMode((LEDMode)mode);
                         sendStatusToClients();
                     }
@@ -158,6 +179,21 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                     }
                     else if (msgType && strcmp(msgType, "clear_expected_notes") == 0) {
                         if (ledController) ledController->clearExpectedNotes();
+                    }
+                    // Воспроизведение ноты из приложения (режим Demo/Learning)
+                    else if (msgType && strcmp(msgType, "play_note") == 0) {
+                        JsonObject payload = doc["payload"];
+                        uint8_t note = payload["note"] | 0;
+                        uint8_t velocity = payload["velocity"] | 100;
+                        bool on = payload["on"] | true;
+
+                        if (ledController) {
+                            if (on && velocity > 0) {
+                                ledController->noteOn(note, velocity);
+                            } else {
+                                ledController->noteOff(note);
+                            }
+                        }
                     }
                     else if (msgType && strcmp(msgType, "set_split") == 0) {
                         // Support both camelCase (Angular) and snake_case naming
@@ -244,13 +280,25 @@ void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client,
                             if (payload.containsKey("saturation")) {
                                 ledController->setSaturation(payload["saturation"]);
                             }
-                            // Fade rate (0-255)
+                            // Fade rate (0-255) - поддержка fadeRate и fadeTime
                             if (payload.containsKey("fadeRate")) {
                                 ledController->setFadeRate(payload["fadeRate"]);
+                            } else if (payload.containsKey("fadeTime")) {
+                                // Angular отправляет fadeTime в мс, конвертируем в fade rate
+                                // fadeTime 0-2000 → fadeRate 255-0 (инвертировано)
+                                uint16_t fadeTime = payload["fadeTime"];
+                                uint8_t fadeRate = fadeTime > 0 ? 255 - min((int)(fadeTime / 8), 255) : 255;
+                                ledController->setFadeRate(fadeRate);
                             }
-                            // Splash/wave effect
+                            // Splash/wave effect - поддержка splashEnabled и waveEnabled
                             if (payload.containsKey("splashEnabled")) {
                                 ledController->setSplashEnabled(payload["splashEnabled"]);
+                            } else if (payload.containsKey("waveEnabled")) {
+                                ledController->setSplashEnabled(payload["waveEnabled"]);
+                            }
+                            // Wave width (если поддерживается)
+                            if (payload.containsKey("waveWidth")) {
+                                // TODO: добавить setWaveWidth в ledController
                             }
                             // Mode (0-8)
                             if (payload.containsKey("mode")) {

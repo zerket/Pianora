@@ -151,7 +151,8 @@ export class ConnectionService {
       return;
     }
 
-    const wsUrl = environment.wsUrl || `ws://${window.location.hostname}:81/`;
+    // WebSocket на том же порту что и HTTP (80), путь /ws
+    const wsUrl = environment.wsUrl || `ws://${window.location.host}/ws`;
 
     console.log('Connecting to WebSocket:', wsUrl);
 
@@ -290,6 +291,11 @@ export class ConnectionService {
   // Learning mode: send expected notes to firmware
   setExpectedNotes(notes: number[]): void {
     this.send('set_expected_notes', { notes });
+  }
+
+  // Воспроизведение ноты на LED ленте (для Demo/Learning режимов)
+  playNote(note: number, velocity: number, on: boolean): void {
+    this.send('play_note', { note, velocity, on });
   }
 
   private handleMessage(data: string): void {

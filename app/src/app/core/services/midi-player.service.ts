@@ -423,6 +423,16 @@ export class MidiPlayerService {
         const freq = Tone.Frequency(note.note, 'midi').toFrequency();
         this.synth.triggerAttackRelease(freq, note.duration, undefined, velocity);
       }
+
+      // Отправляем ноту на LED ленту
+      if (this.connectionService && typeof this.connectionService.playNote === 'function') {
+        this.connectionService.playNote(note.note, note.velocity, true);
+
+        // Отправляем note off после окончания длительности
+        setTimeout(() => {
+          this.connectionService.playNote(note.note, 0, false);
+        }, note.duration * 1000);
+      }
     }
   }
 

@@ -27,8 +27,16 @@ import { I18nService } from '@core/services/i18n.service';
               <span class="action">{{ i18n.t('help.hotkeys.splashMode') }}</span>
             </div>
             <div class="hotkey-item">
+              <span class="keys">A0 + B0 + E3</span>
+              <span class="action">{{ i18n.t('help.hotkeys.randomMode') }}</span>
+            </div>
+            <div class="hotkey-item">
+              <span class="keys">A0 + B0 + F3</span>
+              <span class="action">{{ i18n.t('help.hotkeys.velocityMode') }}</span>
+            </div>
+            <div class="hotkey-item">
               <span class="keys">A0 + B0 + G3</span>
-              <span class="action">{{ i18n.t('help.hotkeys.cycleMode') }}</span>
+              <span class="action">{{ i18n.t('help.hotkeys.rainbowMode') }}</span>
             </div>
           </div>
         </div>
@@ -37,11 +45,11 @@ import { I18nService } from '@core/services/i18n.service';
           <h3>{{ i18n.t('help.hotkeys.brightness') }}</h3>
           <div class="hotkey-list">
             <div class="hotkey-item">
-              <span class="keys">A0 + B0 + E3</span>
+              <span class="keys">A0 + B0 + C#3</span>
               <span class="action">{{ i18n.t('help.hotkeys.brightnessUp') }}</span>
             </div>
             <div class="hotkey-item">
-              <span class="keys">A0 + B0 + F3</span>
+              <span class="keys">A0 + B0 + D#3</span>
               <span class="action">{{ i18n.t('help.hotkeys.brightnessDown') }}</span>
             </div>
             <div class="hotkey-item">
