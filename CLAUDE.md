@@ -216,17 +216,19 @@ Copy-Item "firmware\.pio\build\esp32-s3-diag\littlefs.bin" "firmware\flash_files
 
 ## WebSocket протокол
 
-Формат сообщений:
+**Подключение:** `ws://{ip}/ws` (порт 80, путь /ws)
+
+Формат сообщений (данные напрямую, без вложенного payload):
 
 ```json
 {
   "type": "message_type",
-  "payload": { ... }
+  "field": "value"
 }
 ```
 
-**От контроллера**: `status`, `midi_note`, `calibration_step`
-**К контроллеру**: `set_mode`, `set_settings`, `start_calibration`, `scan_ble_midi`
+**От контроллера**: `status`, `midi_note`, `hotkey`, `calibration_step`
+**К контроллеру**: `set_mode`, `set_settings`, `play_note`, `set_expected_notes`, `start_calibration`
 
 ## Полезные команды
 
